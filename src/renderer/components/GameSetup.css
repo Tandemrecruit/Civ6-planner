@@ -1,0 +1,180 @@
+.game-setup {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.setup-container {
+  max-width: 800px;
+  width: 100%;
+}
+
+.setup-container h1 {
+  font-size: 2.5rem;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+  margin-bottom: 2rem;
+}
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.setup-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.setup-section.wide {
+  grid-column: 1 / -1;
+}
+
+.setup-section h2 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 0 0 1rem 0;
+}
+
+.setup-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.setup-select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.setup-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.civ-info {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+}
+
+.ability-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0 0 0.25rem 0;
+}
+
+.ability-name {
+  font-size: 0.875rem;
+  color: var(--accent-color);
+  margin: 0;
+  font-weight: 500;
+}
+
+.victory-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.victory-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 0.5rem;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.8rem;
+}
+
+.victory-btn:hover {
+  border-color: var(--text-muted);
+}
+
+.victory-btn.selected {
+  border-color: var(--accent-color);
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent-color);
+}
+
+.victory-icon {
+  font-size: 1.25rem;
+}
+
+.speed-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.radio-label,
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.radio-label input,
+.checkbox-label input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent-color);
+  cursor: pointer;
+}
+
+.dlc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.start-btn {
+  width: 100%;
+  margin-top: 2rem;
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.start-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.start-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
