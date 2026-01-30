@@ -34,7 +34,7 @@
 }
 
 .hex-guide:hover {
-  stroke: #6366f1;
+  stroke: #C6A664;
   opacity: 0.6;
 }
 
@@ -46,10 +46,8 @@
   gap: 1rem;
   font-size: 0.75rem;
   color: var(--text-muted);
-  background: var(--bg-secondary);
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
-  border: 1px solid var(--border-color);
 }
 
 .grid-controls-hint span {

@@ -467,27 +467,8 @@ export const getResourceColor = (type: string): string => {
 // ============================================================================
 
 /**
- * Get SVG points for a river edge segment on a hex.
- *
- * Returns two points defining a line segment along one edge of the hex.
- * Used to draw river graphics between hex tiles.
- *
- * Edge indices (flat-top hex, clockwise from right):
- * - 0: East (E) - from 0° to 60°
- * - 1: Southeast (SE) - from 60° to 120°
- * - 2: Southwest (SW) - from 120° to 180°
- * - 3: West (W) - from 180° to 240°
- * - 4: Northwest (NW) - from 240° to 300°
- * - 5: Northeast (NE) - from 300° to 360°
- *
- * @param center - Pixel position of the hex center
- * @param edgeIndex - Edge index (0-5)
- * @returns SVG points string "x1,y1 x2,y2" for use in <polyline>
- *
- * @example
- * // Draw a river on the east edge
- * const points = getRiverEdgePoints({ x: 100, y: 100 }, 0);
- * return <polyline points={points} stroke="blue" />;
+ * Get the points for a river edge segment
+ * Edge index: 0=E (30°), 1=NE (90°), 2=NW (150°), 3=W (210°), 4=SW (270°), 5=SE (330°)
  */
 export const getRiverEdgePoints = (
   center: { x: number; y: number },

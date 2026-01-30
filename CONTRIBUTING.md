@@ -230,7 +230,6 @@ Currently, the project relies on manual testing. When testing your changes:
 1. **Test the happy path**: Verify the feature works as expected.
 2. **Test edge cases**: Empty states, maximum values, invalid inputs.
 3. **Test persistence**: Ensure data survives app restart (auto-save functionality).
-4. **Test across platforms**: If possible, test on Windows, macOS, and Linux.
 
 ### Future Testing Plans
 
