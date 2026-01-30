@@ -9,6 +9,12 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     name: "Civ6 Strategic Planner",
+    win32metadata: {
+      CompanyName: "Civ6 Strategic Planner",
+      FileDescription: "Civ 6 Strategic Planner",
+      ProductName: "Civ6 Strategic Planner",
+      InternalName: "civ6-planner",
+    },
   },
   rebuildConfig: {},
   makers: [

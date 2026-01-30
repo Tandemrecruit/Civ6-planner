@@ -8,7 +8,7 @@ type AppView = "loading" | "setup" | "game";
 
 const App: React.FC = () => {
   const [view, setView] = useState<AppView>("loading");
-  const { setup, loadState } = useGameStore();
+  const { loadState } = useGameStore();
 
   // Load saved game on startup
   useEffect(() => {

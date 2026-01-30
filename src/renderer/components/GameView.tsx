@@ -9,10 +9,11 @@
 
 import React, { useState } from "react";
 import { useGameStore } from "../store";
-import { HexCoord, Tile, coordKey } from "../../types/model";
+import { HexCoord, coordKey, GameSetup as GameSetupType } from "../../types/model";
 import HexGrid from "./HexGrid";
 import TileInspector from "./TileInspector";
 import { CIVS } from "../data/civs";
+import { deserialize, serialize } from "../utils/persistence";
 import "./GameView.css";
 
 /**
@@ -52,17 +53,49 @@ interface GameViewProps {
  * return <GameView onNewGame={() => setShowGame(false)} />;
  */
 const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
-  const { setup, currentTurn, cities, tiles, advanceTurn } = useGameStore();
+  const { setup, currentTurn, cities, tiles, advanceTurn, loadState, newGame } = useGameStore();
+  const gameState = useGameStore();
 
   const [selectedCoord, setSelectedCoord] = useState<HexCoord | null>(null);
   const [showTurnDialog, setShowTurnDialog] = useState(false);
   const [newTurnInput, setNewTurnInput] = useState("");
+  const [status, setStatus] = useState<{ kind: "success" | "error" | "info"; message: string } | null>(
+    null
+  );
 
   // Get civ and leader names
   const civData = CIVS.find((c) => c.id === setup.playerCiv);
   const leaderData = civData?.leaders.find((l) => l.id === setup.playerLeader);
 
-  const handleTileSelect = (coord: HexCoord, tile: Tile | null) => {
+  const showStatus = (message: string, kind: "success" | "error" | "info" = "info") => {
+    setStatus({ message, kind });
+    window.setTimeout(() => setStatus(null), 4000);
+  };
+
+  const getSerializedStateJson = (): string => {
+    const serialized = serialize({
+      setup: gameState.setup,
+      currentTurn: gameState.currentTurn,
+      currentEra: gameState.currentEra,
+      tiles: gameState.tiles,
+      cities: gameState.cities,
+      completedTechs: gameState.completedTechs,
+      completedCivics: gameState.completedCivics,
+      currentTech: gameState.currentTech,
+      currentCivic: gameState.currentCivic,
+      techQueue: gameState.techQueue,
+      civicQueue: gameState.civicQueue,
+      policyLoadout: gameState.policyLoadout,
+      gold: gameState.gold,
+      faith: gameState.faith,
+      strategicResources: gameState.strategicResources,
+      aiCivs: gameState.aiCivs,
+      lastUpdated: gameState.lastUpdated,
+    });
+    return JSON.stringify(serialized, null, 2);
+  };
+
+  const handleTileSelect = (coord: HexCoord) => {
     setSelectedCoord(coord);
   };
 
@@ -79,9 +112,84 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
     }
   };
 
+  const handleSaveAs = async () => {
+    try {
+      const json = getSerializedStateJson();
+      const result = await window.electronAPI.exportGame(json);
+      if (result.success && result.canceled) {
+        return;
+      }
+      if (result.success) {
+        showStatus(`Exported to ${result.path}`, "success");
+      } else {
+        showStatus(result.error || "Export failed", "error");
+      }
+    } catch (error) {
+      showStatus(String(error), "error");
+    }
+  };
+
+  const handleLoad = async () => {
+    try {
+      const result = await window.electronAPI.importGame();
+      if (result.success && result.canceled) {
+        return;
+      }
+      if (!result.success || !result.data) {
+        showStatus(result.error || "Load failed", "error");
+        return;
+      }
+
+      const parsed = JSON.parse(result.data);
+      const state = deserialize(parsed);
+      loadState(state);
+      showStatus(`Loaded ${result.path}`, "success");
+    } catch (error) {
+      showStatus(`Load failed: ${String(error)}`, "error");
+    }
+  };
+
+  const handleBackup = async () => {
+    try {
+      const result = await window.electronAPI.backupSave();
+      if (result.success) {
+        showStatus(result.path ? `Backup created: ${result.path}` : "Backup created", "success");
+      } else {
+        showStatus(result.error || "Backup failed", "error");
+      }
+    } catch (error) {
+      showStatus(`Backup failed: ${String(error)}`, "error");
+    }
+  };
+
+  const handleOpenSaveLocation = async () => {
+    try {
+      const result = await window.electronAPI.openSaveLocation();
+      if (!result.success) {
+        showStatus(result.error || "Could not open save location", "error");
+      }
+    } catch (error) {
+      showStatus(`Could not open save location: ${String(error)}`, "error");
+    }
+  };
+
   const handleNewGameClick = () => {
     if (window.confirm("Start a new game? Current progress will be saved as a backup.")) {
-      window.electronAPI.backupSave();
+      void handleBackup();
+      const emptySetup: GameSetupType = {
+        playerCiv: "",
+        playerLeader: "",
+        victoryType: "science",
+        gameSpeed: "standard",
+        dlc: {
+          gatheringStorm: true,
+          riseFall: true,
+          dramaticAges: false,
+          heroes: false,
+          secretSocieties: false,
+        },
+      };
+      newGame(emptySetup);
       onNewGame();
     }
   };
@@ -120,6 +228,24 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
         </div>
 
         <div className="header-right">
+          <div className="header-actions">
+            <button className="header-action-btn" onClick={handleSaveAs} title="Export to file">
+              Save As…
+            </button>
+            <button className="header-action-btn" onClick={handleLoad} title="Import from file">
+              Load…
+            </button>
+            <button className="header-action-btn" onClick={handleBackup} title="Backup autosave">
+              Backup
+            </button>
+            <button
+              className="header-action-btn"
+              onClick={handleOpenSaveLocation}
+              title="Open autosave location"
+            >
+              Open Save Folder
+            </button>
+          </div>
           <div className="stat-item">
             <span className="stat-label">Cities</span>
             <span className="stat-value">{cities.length}</span>
@@ -133,6 +259,12 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
           </button>
         </div>
       </header>
+
+      {status && (
+        <div className={`status-banner ${status.kind}`} role="status">
+          {status.message}
+        </div>
+      )}
 
       {/* Main content */}
       <div className="game-content">

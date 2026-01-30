@@ -8,8 +8,6 @@ import {
   HexCoord,
   coordKey,
   BuildQueueItem,
-  QueuedTech,
-  QueuedCivic,
   TilePlannedState,
   Recommendation,
   AICiv,
@@ -89,7 +87,7 @@ const createEmptyState = (): Omit<GameState, "setup"> => ({
   lastUpdated: new Date(),
 });
 
-export const useGameStore = create<GameStore>((set, get) => ({
+export const useGameStore = create<GameStore>((set) => ({
   // Initial state
   setup: {
     playerCiv: "",
@@ -122,7 +120,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }),
 
   advanceTurn: (newTurn) =>
-    set((s) => ({
+    set(() => ({
       currentTurn: newTurn,
       lastUpdated: new Date(),
     })),

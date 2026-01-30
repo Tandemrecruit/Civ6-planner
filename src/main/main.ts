@@ -1,18 +1,12 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, shell } from "electron";
+import squirrelStartup from "electron-squirrel-startup";
 import * as path from "path";
 import * as fs from "fs";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 // This is only needed for production builds with Squirrel installer
-try {
-  if (require.resolve("electron-squirrel-startup")) {
-    const squirrelStartup = require("electron-squirrel-startup");
-    if (squirrelStartup) {
-      app.quit();
-    }
-  }
-} catch {
-  // Module not installed, skip (fine for development)
+if (squirrelStartup) {
+  app.quit();
 }
 
 let mainWindow: BrowserWindow | null = null;
@@ -49,14 +43,23 @@ const getSaveFilePath = (): string => {
   return path.join(userDataPath, "game-state.json");
 };
 
+const writeJsonAtomically = (filePath: string, data: string) => {
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  const tempPath = filePath + ".tmp";
+  fs.writeFileSync(tempPath, data, "utf-8");
+  fs.renameSync(tempPath, filePath);
+};
+
 // IPC handlers for save/load
 ipcMain.handle("save-game", async (_event, data: string) => {
   const filePath = getSaveFilePath();
-  const tempPath = filePath + ".tmp";
-  
+
   try {
-    fs.writeFileSync(tempPath, data, "utf-8");
-    fs.renameSync(tempPath, filePath);
+    writeJsonAtomically(filePath, data);
     return { success: true, path: filePath };
   } catch (error) {
     console.error("Failed to save:", error);
@@ -91,6 +94,73 @@ ipcMain.handle("backup-save", async () => {
     const backupPath = filePath.replace(".json", `-backup-${timestamp}.json`);
     fs.copyFileSync(filePath, backupPath);
     return { success: true, path: backupPath };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+});
+
+ipcMain.handle("export-game", async (_event, data: string) => {
+  try {
+    const defaultPath = path.join(
+      app.getPath("documents"),
+      "Civ6 Strategic Planner",
+      "civ6-planner-game.json"
+    );
+
+    const result = await dialog.showSaveDialog({
+      title: "Save Civ6 Planner File",
+      defaultPath,
+      filters: [{ name: "Civ6 Planner Save", extensions: ["json"] }],
+    });
+
+    if (result.canceled || !result.filePath) {
+      return { success: true, canceled: true };
+    }
+
+    writeJsonAtomically(result.filePath, data);
+    return { success: true, canceled: false, path: result.filePath };
+  } catch (error) {
+    console.error("Failed to export:", error);
+    return { success: false, error: String(error) };
+  }
+});
+
+ipcMain.handle("import-game", async () => {
+  try {
+    const defaultPath = path.join(app.getPath("documents"), "Civ6 Strategic Planner");
+
+    const result = await dialog.showOpenDialog({
+      title: "Load Civ6 Planner File",
+      defaultPath,
+      properties: ["openFile"],
+      filters: [{ name: "Civ6 Planner Save", extensions: ["json"] }],
+    });
+
+    if (result.canceled || result.filePaths.length === 0) {
+      return { success: true, canceled: true };
+    }
+
+    const filePath = result.filePaths[0];
+    const json = fs.readFileSync(filePath, "utf-8");
+    return { success: true, canceled: false, path: filePath, data: json };
+  } catch (error) {
+    console.error("Failed to import:", error);
+    return { success: false, error: String(error) };
+  }
+});
+
+ipcMain.handle("open-save-location", async () => {
+  try {
+    const filePath = getSaveFilePath();
+    const userDataPath = app.getPath("userData");
+
+    if (fs.existsSync(filePath)) {
+      shell.showItemInFolder(filePath);
+    } else {
+      // Fall back to opening the directory if no save file exists yet
+      await shell.openPath(userDataPath);
+    }
+    return { success: true, path: filePath };
   } catch (error) {
     return { success: false, error: String(error) };
   }

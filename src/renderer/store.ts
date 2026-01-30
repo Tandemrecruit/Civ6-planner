@@ -26,8 +26,6 @@ import {
   HexCoord,
   coordKey,
   BuildQueueItem,
-  QueuedTech,
-  QueuedCivic,
   TilePlannedState,
   Recommendation,
   AICiv,
