@@ -468,7 +468,7 @@ export const getResourceColor = (type: string): string => {
 
 /**
  * Get the points for a river edge segment
- * Edge index: 0=E (30°), 1=SE (90°), 2=SW (150°), 3=W (210°), 4=NW (270°), 5=NE (330°)
+ * Edge index: 0=E (30°), 1=NE (90°), 2=NW (150°), 3=W (210°), 4=SW (270°), 5=SE (330°)
  */
 export const getRiverEdgePoints = (
   center: { x: number; y: number },
