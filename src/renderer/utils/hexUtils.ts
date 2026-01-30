@@ -1,18 +1,72 @@
+/**
+ * @fileoverview Hex grid utility functions for coordinate math and rendering.
+ *
+ * This module provides all the mathematical functions needed for working with
+ * hexagonal grids, including coordinate conversion, neighbor calculation, and
+ * visual styling. Uses flat-top hex orientation with axial coordinates.
+ *
+ * @module renderer/utils/hexUtils
+ * @see https://www.redblobgames.com/grids/hexagons/ - Reference implementation guide
+ */
+
 import { HexCoord } from "../../types/model";
 
-// Hex size (distance from center to corner)
-export const HEX_SIZE = 40;
-
-// Flat-top hex dimensions
-export const HEX_WIDTH = HEX_SIZE * 2;
-export const HEX_HEIGHT = Math.sqrt(3) * HEX_SIZE;
-
-// Horizontal and vertical spacing between hex centers
-export const HEX_HORIZ_SPACING = HEX_WIDTH * 0.75;
-export const HEX_VERT_SPACING = HEX_HEIGHT;
+// ============================================================================
+// CONSTANTS
+// ============================================================================
 
 /**
- * Convert axial coordinates to pixel position (flat-top hexes)
+ * Hex size in pixels (distance from center to corner vertex).
+ * All other dimensions derive from this value.
+ */
+export const HEX_SIZE = 40;
+
+/**
+ * Width of a flat-top hex (point to point horizontally).
+ * Equals 2 * HEX_SIZE.
+ */
+export const HEX_WIDTH = HEX_SIZE * 2;
+
+/**
+ * Height of a flat-top hex (flat edge to flat edge).
+ * Equals sqrt(3) * HEX_SIZE.
+ */
+export const HEX_HEIGHT = Math.sqrt(3) * HEX_SIZE;
+
+/**
+ * Horizontal spacing between hex centers in a grid.
+ * Hexes overlap by 1/4 of their width horizontally.
+ */
+export const HEX_HORIZ_SPACING = HEX_WIDTH * 0.75;
+
+/**
+ * Vertical spacing between hex centers in a grid.
+ * Same as HEX_HEIGHT for flat-top orientation.
+ */
+export const HEX_VERT_SPACING = HEX_HEIGHT;
+
+// ============================================================================
+// COORDINATE CONVERSION
+// ============================================================================
+
+/**
+ * Convert axial hex coordinates to pixel position (flat-top hexes).
+ *
+ * Uses the standard flat-top hex conversion formula where:
+ * - x = size * 3/2 * q
+ * - y = size * sqrt(3) * (q/2 + r)
+ *
+ * @param coord - Axial coordinates to convert
+ * @returns Pixel position {x, y} for the hex center
+ *
+ * @example
+ * const pixel = hexToPixel({ q: 2, r: 1 });
+ * // Returns { x: 120, y: 103.92... }
+ *
+ * @example
+ * // Use for SVG positioning
+ * const { x, y } = hexToPixel(tile.coord);
+ * return <circle cx={x} cy={y} r={5} />;
  */
 export const hexToPixel = (coord: HexCoord): { x: number; y: number } => {
   const x = HEX_SIZE * (3 / 2) * coord.q;
@@ -21,7 +75,21 @@ export const hexToPixel = (coord: HexCoord): { x: number; y: number } => {
 };
 
 /**
- * Convert pixel position to axial coordinates (flat-top hexes)
+ * Convert pixel position to axial hex coordinates (flat-top hexes).
+ *
+ * Converts screen/SVG coordinates back to the hex grid coordinate system.
+ * Automatically rounds to the nearest hex using {@link hexRound}.
+ *
+ * @param x - X pixel coordinate
+ * @param y - Y pixel coordinate
+ * @returns Axial coordinates of the hex containing this pixel
+ *
+ * @example
+ * // Convert a click position to hex coordinates
+ * const handleClick = (e: MouseEvent) => {
+ *   const hex = pixelToHex(e.clientX - offset.x, e.clientY - offset.y);
+ *   selectTile(hex);
+ * };
  */
 export const pixelToHex = (x: number, y: number): HexCoord => {
   const q = (2 / 3 * x) / HEX_SIZE;
@@ -30,7 +98,18 @@ export const pixelToHex = (x: number, y: number): HexCoord => {
 };
 
 /**
- * Round fractional hex coordinates to nearest hex
+ * Round fractional hex coordinates to the nearest integer hex.
+ *
+ * Uses cube coordinate rounding for accuracy: converts to cube coords,
+ * rounds each component, then adjusts the component with the largest
+ * rounding error to maintain the cube coordinate constraint (q + r + s = 0).
+ *
+ * @param coord - Fractional axial coordinates to round
+ * @returns Integer axial coordinates of the nearest hex
+ *
+ * @example
+ * hexRound({ q: 1.3, r: 0.8 });  // Returns { q: 1, r: 1 }
+ * hexRound({ q: -0.4, r: 2.1 }); // Returns { q: 0, r: 2 }
  */
 export const hexRound = (coord: { q: number; r: number }): HexCoord => {
   const s = -coord.q - coord.r;
@@ -52,8 +131,23 @@ export const hexRound = (coord: { q: number; r: number }): HexCoord => {
   return { q: rq, r: rr };
 };
 
+// ============================================================================
+// GEOMETRY
+// ============================================================================
+
 /**
- * Get the 6 corners of a hex for drawing (flat-top orientation)
+ * Get the 6 corner vertices of a hex as an SVG polygon points string.
+ *
+ * Generates corners for flat-top orientation starting from the right
+ * (0 degrees) and going clockwise.
+ *
+ * @param center - Pixel position of the hex center
+ * @returns SVG points string for use in <polygon points="...">
+ *
+ * @example
+ * const { x, y } = hexToPixel(tile.coord);
+ * const points = hexCorners({ x, y });
+ * return <polygon points={points} fill="green" />;
  */
 export const hexCorners = (center: { x: number; y: number }): string => {
   const corners: string[] = [];
@@ -67,8 +161,28 @@ export const hexCorners = (center: { x: number; y: number }): string => {
   return corners.join(" ");
 };
 
+// ============================================================================
+// NEIGHBORS & DISTANCE
+// ============================================================================
+
 /**
- * Get neighboring hex coordinates
+ * Get the 6 neighboring hex coordinates around a center hex.
+ *
+ * Returns neighbors in clockwise order starting from East:
+ * E, NE, NW, W, SW, SE
+ *
+ * @param coord - Center hex coordinates
+ * @returns Array of 6 neighboring hex coordinates
+ *
+ * @example
+ * const neighbors = hexNeighbors({ q: 0, r: 0 });
+ * // Returns coordinates for all 6 adjacent hexes
+ *
+ * @example
+ * // Check if a tile has adjacent mountains
+ * const hasAdjacentMountain = hexNeighbors(tile.coord)
+ *   .map(c => tiles.get(coordKey(c)))
+ *   .some(t => t?.modifier === "mountain");
  */
 export const hexNeighbors = (coord: HexCoord): HexCoord[] => {
   const directions: HexCoord[] = [
@@ -83,7 +197,18 @@ export const hexNeighbors = (coord: HexCoord): HexCoord[] => {
 };
 
 /**
- * Calculate distance between two hexes
+ * Calculate the distance between two hexes in hex steps.
+ *
+ * Uses the Manhattan distance formula for hex grids:
+ * distance = (|Δq| + |Δq + Δr| + |Δr|) / 2
+ *
+ * @param a - First hex coordinates
+ * @param b - Second hex coordinates
+ * @returns Number of hex steps between the two hexes
+ *
+ * @example
+ * hexDistance({ q: 0, r: 0 }, { q: 2, r: -1 }); // Returns 2
+ * hexDistance({ q: 0, r: 0 }, { q: 3, r: 0 });  // Returns 3
  */
 export const hexDistance = (a: HexCoord, b: HexCoord): number => {
   return (
@@ -95,7 +220,23 @@ export const hexDistance = (a: HexCoord, b: HexCoord): number => {
 };
 
 /**
- * Get all hexes within a certain range of a center hex
+ * Get all hexes within a certain range of a center hex (inclusive).
+ *
+ * Returns hexes in a filled hexagonal area. The center hex is included
+ * when range >= 0.
+ *
+ * @param center - Center hex coordinates
+ * @param range - Maximum distance from center (0 = just center, 1 = center + 6 neighbors, etc.)
+ * @returns Array of all hex coordinates within range
+ *
+ * @example
+ * // Get all hexes within 2 tiles of a city
+ * const cityArea = hexesInRange(city.location, 2);
+ * // Returns 19 hexes (1 + 6 + 12)
+ *
+ * @example
+ * // Get a city's workable tiles (3-tile radius)
+ * const workable = hexesInRange(city.location, 3);
  */
 export const hexesInRange = (center: HexCoord, range: number): HexCoord[] => {
   const results: HexCoord[] = [];
@@ -107,8 +248,24 @@ export const hexesInRange = (center: HexCoord, range: number): HexCoord[] => {
   return results;
 };
 
+// ============================================================================
+// STYLING - TERRAIN
+// ============================================================================
+
 /**
- * Get terrain color - more distinct colors for each terrain type
+ * Get the fill color for a terrain type.
+ *
+ * Returns a distinct color for each terrain type to make the map
+ * easily readable. Mountains override the base terrain color.
+ *
+ * @param terrain - Terrain type name
+ * @param modifier - Optional terrain modifier (hills, mountain)
+ * @returns CSS color string (hex format)
+ *
+ * @example
+ * const fill = getTerrainColor("grassland");        // "#22c55e"
+ * const fill = getTerrainColor("plains", "hills"); // "#eab308"
+ * const fill = getTerrainColor("desert", "mountain"); // "#374151"
  */
 export const getTerrainColor = (terrain: string, modifier?: string): string => {
   if (modifier === "mountain") return "#374151"; // Dark gray for mountains
@@ -127,7 +284,16 @@ export const getTerrainColor = (terrain: string, modifier?: string): string => {
 };
 
 /**
- * Get hills indicator color (used for pattern overlay)
+ * Get a darker variant of terrain color for hills pattern overlay.
+ *
+ * Used to draw triangular hills indicators that contrast with
+ * the base terrain color.
+ *
+ * @param terrain - Terrain type name
+ * @returns CSS color string (hex format)
+ *
+ * @example
+ * const patternColor = getHillsPatternColor("grassland"); // "#15803d"
  */
 export const getHillsPatternColor = (terrain: string): string => {
   const colors: Record<string, string> = {
@@ -142,8 +308,22 @@ export const getHillsPatternColor = (terrain: string): string => {
   return colors[terrain] || "#374151";
 };
 
+// ============================================================================
+// STYLING - FEATURES
+// ============================================================================
+
 /**
- * Get feature overlay color/pattern - more vibrant colors
+ * Get the overlay color for a natural feature.
+ *
+ * Returns semi-transparent colors that overlay on terrain
+ * to indicate features like woods, marshes, etc.
+ *
+ * @param feature - Feature type name
+ * @returns CSS rgba color string, or null if unknown feature
+ *
+ * @example
+ * const overlay = getFeatureColor("woods"); // "rgba(22, 101, 52, 0.55)"
+ * const overlay = getFeatureColor("unknown"); // null
  */
 export const getFeatureColor = (feature: string): string | null => {
   const colors: Record<string, string> = {
@@ -161,7 +341,14 @@ export const getFeatureColor = (feature: string): string | null => {
 };
 
 /**
- * Get feature icon for display
+ * Get the emoji icon for a natural feature.
+ *
+ * @param feature - Feature type name
+ * @returns Emoji string representing the feature, or empty string if unknown
+ *
+ * @example
+ * getFeatureIcon("woods");      // "🌲"
+ * getFeatureIcon("rainforest"); // "🌴"
  */
 export const getFeatureIcon = (feature: string): string => {
   const icons: Record<string, string> = {
@@ -178,8 +365,19 @@ export const getFeatureIcon = (feature: string): string => {
   return icons[feature] || "";
 };
 
+// ============================================================================
+// STYLING - DISTRICTS & IMPROVEMENTS
+// ============================================================================
+
 /**
- * Get district icon/label
+ * Get the emoji icon for a district type.
+ *
+ * @param district - District type name (e.g., "campus", "industrial_zone")
+ * @returns Emoji string representing the district, or "?" if unknown
+ *
+ * @example
+ * getDistrictLabel("campus");          // "🔬"
+ * getDistrictLabel("industrial_zone"); // "🏭"
  */
 export const getDistrictLabel = (district: string): string => {
   const labels: Record<string, string> = {
@@ -207,7 +405,15 @@ export const getDistrictLabel = (district: string): string => {
 };
 
 /**
- * Get improvement icon/label
+ * Get the emoji icon for a tile improvement.
+ *
+ * @param improvement - Improvement type name (e.g., "farm", "mine")
+ * @returns Emoji string representing the improvement, or "?" if unknown
+ *
+ * @example
+ * getImprovementLabel("farm");    // "🌾"
+ * getImprovementLabel("mine");    // "⛏️"
+ * getImprovementLabel("pasture"); // "🐄"
  */
 export const getImprovementLabel = (improvement: string): string => {
   const labels: Record<string, string> = {
@@ -230,8 +436,22 @@ export const getImprovementLabel = (improvement: string): string => {
   return labels[improvement] || "?";
 };
 
+// ============================================================================
+// STYLING - RESOURCES
+// ============================================================================
+
 /**
- * Get resource type color
+ * Get the indicator color for a resource type.
+ *
+ * Used for the small resource indicator circles on tiles.
+ *
+ * @param type - Resource type ("luxury", "strategic", "bonus")
+ * @returns CSS color string (hex format)
+ *
+ * @example
+ * getResourceColor("luxury");    // "#a855f7" (purple)
+ * getResourceColor("strategic"); // "#ef4444" (red)
+ * getResourceColor("bonus");     // "#22c55e" (green)
  */
 export const getResourceColor = (type: string): string => {
   const colors: Record<string, string> = {
@@ -242,9 +462,32 @@ export const getResourceColor = (type: string): string => {
   return colors[type] || "#6b7280";
 };
 
+// ============================================================================
+// STYLING - RIVERS
+// ============================================================================
+
 /**
- * Get the points for a river edge segment
- * Edge index: 0=E, 1=NE, 2=NW, 3=W, 4=SW, 5=SE (flat-top hex)
+ * Get SVG points for a river edge segment on a hex.
+ *
+ * Returns two points defining a line segment along one edge of the hex.
+ * Used to draw river graphics between hex tiles.
+ *
+ * Edge indices (flat-top hex, clockwise from right):
+ * - 0: East (E) - from 0° to 60°
+ * - 1: Southeast (SE) - from 60° to 120°
+ * - 2: Southwest (SW) - from 120° to 180°
+ * - 3: West (W) - from 180° to 240°
+ * - 4: Northwest (NW) - from 240° to 300°
+ * - 5: Northeast (NE) - from 300° to 360°
+ *
+ * @param center - Pixel position of the hex center
+ * @param edgeIndex - Edge index (0-5)
+ * @returns SVG points string "x1,y1 x2,y2" for use in <polyline>
+ *
+ * @example
+ * // Draw a river on the east edge
+ * const points = getRiverEdgePoints({ x: 100, y: 100 }, 0);
+ * return <polyline points={points} stroke="blue" />;
  */
 export const getRiverEdgePoints = (
   center: { x: number; y: number },
