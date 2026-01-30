@@ -110,6 +110,21 @@ const ADJACENCY_PROVIDING_DISTRICTS: DistrictType[] = [
   "preserve",
 ];
 
+/**
+ * Districts that can only be placed on water (coast/ocean) tiles.
+ */
+const WATER_ONLY_DISTRICTS: DistrictType[] = ["harbor", "water_park"];
+
+/**
+ * Whether a district can be placed on water tiles (coast/ocean).
+ *
+ * @param district - District type to check
+ * @returns true if the district is water/coast-only (e.g. Harbor, Water Park)
+ */
+export function isWaterDistrict(district: DistrictType): boolean {
+  return WATER_ONLY_DISTRICTS.includes(district);
+}
+
 // ============================================================================
 // CIV-SPECIFIC BONUSES
 // ============================================================================
@@ -126,7 +141,7 @@ export interface CivAdjacencyModifiers {
   /** Additional bonuses for specific features (e.g., Brazil rainforest) */
   featureBonuses: Record<string, number>;
   /** Custom district adjacency rules */
-  customDistricts: Record<string, CustomDistrictRules>;
+  customDistricts: Partial<Record<DistrictType, CustomDistrictRules>>;
 }
 
 /**
@@ -584,8 +599,9 @@ const calculateDistrictBonus = (
 };
 
 /**
- * Calculate the bonus from adjacent Government Plaza.
- * Government Plaza provides +1.5 to all adjacent districts.
+ * Calculate the extra bonus from adjacent Government Plaza.
+ * Government Plaza is already counted in district adjacency (+0.5 per tile).
+ * This adds the additional +1 per adjacent Government Plaza, for a total of +1.5 per plaza.
  *
  * @param neighbors - Neighboring tiles
  * @returns Government Plaza adjacency source, or null if none adjacent
@@ -594,7 +610,7 @@ const calculateGovernmentPlazaBonus = (
   neighbors: Tile[]
 ): AdjacencySource | null => {
   const govPlazas = countMatching(neighbors, (t) => t.district === "government_plaza");
-  return createSource("Government Plaza", govPlazas, 1.5);
+  return createSource("Government Plaza", govPlazas, 1);
 };
 
 /**
@@ -694,12 +710,11 @@ export const calculateAdjacency = (
       break;
     case "harbor":
       // Harbor has special adjacency rules - calculated separately
+      const harborSources = calculateHarborAdjacency(neighbors);
       return {
         district,
-        bonus: Math.floor(
-          calculateHarborAdjacency(neighbors).reduce((sum, s) => sum + s.totalBonus, 0)
-        ),
-        breakdown: calculateHarborAdjacency(neighbors).filter((s) => s !== null),
+        bonus: Math.floor(harborSources.reduce((sum, s) => sum + s.totalBonus, 0)),
+        breakdown: harborSources,
       };
     case "encampment":
       sources.push(...calculateEncampmentAdjacency());

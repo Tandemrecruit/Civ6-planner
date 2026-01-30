@@ -15,6 +15,7 @@ import {
   getDistrictDisplayName,
   getAdjacencyColor,
   getAdjacencyRating,
+  isWaterDistrict,
 } from "../utils/adjacencyCalculator";
 import { getDistrictLabel } from "../utils/hexUtils";
 import "./AdjacencyPanel.css";
@@ -81,7 +82,7 @@ const AdjacencyPanel: React.FC<AdjacencyPanelProps> = ({
   const hasExistingDistrict = tile?.district !== undefined;
   // Check if tile is a mountain (can't place districts)
   const isMountain = tile?.modifier === "mountain";
-  // Check if tile is water (only harbor allowed)
+  // Check if tile is water (only water-only districts allowed)
   const isWater = tile?.terrain === "coast" || tile?.terrain === "ocean";
 
   // Don't show panel for invalid placement locations
@@ -165,8 +166,8 @@ const AdjacencyItem: React.FC<AdjacencyItemProps> = ({
   const icon = getDistrictLabel(district);
   const name = getDistrictDisplayName(district);
 
-  // Harbor is the only district that can go on water
-  const isValidForTerrain = !isWater || district === "harbor";
+  // Water-only districts (e.g. Harbor, Water Park) can be placed on water
+  const isValidForTerrain = !isWater || isWaterDistrict(district);
 
   return (
     <li className={`adjacency-item ${!isValidForTerrain ? "invalid" : ""}`}>

@@ -27,6 +27,7 @@ import {
 import {
   calculateAdjacency,
   getAdjacencyColor,
+  isWaterDistrict,
 } from "../utils/adjacencyCalculator";
 import "./HexGrid.css";
 
@@ -53,6 +54,96 @@ interface HexGridProps {
    */
   overlayDistrict?: DistrictType | null;
 }
+
+/** Shape of one entry in the adjacency overlay (coord, bonus, canPlace). */
+interface OverlayDatum {
+  coord: HexCoord;
+  bonus: number;
+  canPlace: boolean;
+}
+
+/**
+ * Props for the AdjacencyOverlay subcomponent.
+ */
+interface AdjacencyOverlayProps {
+  overlayDistrict: DistrictType;
+  tiles: Map<string, Tile>;
+  playerCiv: string;
+}
+
+/**
+ * Renders adjacency bonus overlay badges on tiles for a given district type.
+ * Encapsulates overlay data computation and SVG rendering.
+ */
+const AdjacencyOverlay: React.FC<AdjacencyOverlayProps> = ({
+  overlayDistrict,
+  tiles,
+  playerCiv,
+}) => {
+  const overlayData = useMemo(() => {
+    const data: OverlayDatum[] = [];
+
+    tiles.forEach((tile) => {
+      const hasDistrict =
+        tile.district !== undefined && tile.district !== "city_center";
+      const isMountain = tile.modifier === "mountain";
+      const isWater = tile.terrain === "coast" || tile.terrain === "ocean";
+      const canPlaceOnWater = isWaterDistrict(overlayDistrict) && isWater;
+      const canPlaceOnLand = !isWater && !isMountain && !hasDistrict;
+
+      const canPlace = canPlaceOnWater || canPlaceOnLand;
+
+      const result = calculateAdjacency(tile.coord, overlayDistrict, tiles, playerCiv);
+      data.push({
+        coord: tile.coord,
+        bonus: result.bonus,
+        canPlace,
+      });
+    });
+
+    return data;
+  }, [overlayDistrict, tiles, playerCiv]);
+
+  if (!overlayData.length) return null;
+
+  return (
+    <g className="adjacency-overlays" pointerEvents="none">
+      {overlayData.map(({ coord, bonus, canPlace }) => {
+        if (!canPlace) return null;
+
+        const { x, y } = hexToPixel(coord);
+        const color = getAdjacencyColor(bonus);
+        const key = coordKey(coord);
+
+        return (
+          <g key={`overlay-${key}`} className="adjacency-overlay" pointerEvents="none">
+            <circle
+              cx={x}
+              cy={y}
+              r={HEX_SIZE * 0.4}
+              fill={color}
+              opacity={0.85}
+              stroke="#fff"
+              strokeWidth={2}
+            />
+            <text
+              x={x}
+              y={y}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={HEX_SIZE * 0.4}
+              fontWeight="bold"
+              fill="#fff"
+              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+            >
+              +{bonus}
+            </text>
+          </g>
+        );
+      })}
+    </g>
+  );
+};
 
 /**
  * Interactive SVG hex grid map with pan/zoom navigation.
@@ -638,82 +729,6 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
     return guides;
   };
 
-  // Calculate adjacency bonuses for overlay mode
-  const overlayData = useMemo(() => {
-    if (!overlayDistrict) return null;
-
-    const data: Array<{
-      coord: HexCoord;
-      bonus: number;
-      canPlace: boolean;
-    }> = [];
-
-    // Calculate for all existing tiles
-    tiles.forEach((tile, key) => {
-      // Skip tiles that already have districts (except city_center which doesn't count)
-      const hasDistrict =
-        tile.district !== undefined && tile.district !== "city_center";
-      // Skip mountains
-      const isMountain = tile.modifier === "mountain";
-      // Check water tiles (only harbor can be placed there)
-      const isWater = tile.terrain === "coast" || tile.terrain === "ocean";
-      const canPlaceOnWater = overlayDistrict === "harbor" && isWater;
-      const canPlaceOnLand = !isWater && !isMountain && !hasDistrict;
-
-      const canPlace = canPlaceOnWater || canPlaceOnLand;
-
-      const result = calculateAdjacency(tile.coord, overlayDistrict, tiles, setup.playerCiv);
-      data.push({
-        coord: tile.coord,
-        bonus: result.bonus,
-        canPlace,
-      });
-    });
-
-    return data;
-  }, [overlayDistrict, tiles, setup.playerCiv]);
-
-  // Render adjacency overlay badges on tiles
-  const renderOverlay = () => {
-    if (!overlayData || !overlayDistrict) return null;
-
-    return overlayData.map(({ coord, bonus, canPlace }) => {
-      if (!canPlace) return null;
-
-      const { x, y } = hexToPixel(coord);
-      const color = getAdjacencyColor(bonus);
-      const key = coordKey(coord);
-
-      return (
-        <g key={`overlay-${key}`} className="adjacency-overlay" pointerEvents="none">
-          {/* Background circle */}
-          <circle
-            cx={x}
-            cy={y}
-            r={HEX_SIZE * 0.4}
-            fill={color}
-            opacity={0.85}
-            stroke="#fff"
-            strokeWidth={2}
-          />
-          {/* Bonus text */}
-          <text
-            x={x}
-            y={y}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fontSize={HEX_SIZE * 0.4}
-            fontWeight="bold"
-            fill="#fff"
-            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
-          >
-            +{bonus}
-          </text>
-        </g>
-      );
-    });
-  };
-
   return (
     <div className="hex-grid-container">
       <svg
@@ -733,7 +748,11 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
 
         {/* Adjacency overlay */}
         {overlayDistrict && (
-          <g className="adjacency-overlays">{renderOverlay()}</g>
+          <AdjacencyOverlay
+            overlayDistrict={overlayDistrict}
+            tiles={tiles}
+            playerCiv={setup.playerCiv}
+          />
         )}
 
         {/* Selected tile highlight */}
