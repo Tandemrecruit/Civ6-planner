@@ -1,0 +1,142 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+# CodeRabbit configuration for Civ 6 Strategic Planner
+# Electron + React + TypeScript + Zustand desktop app
+
+language: "en-US"
+tone_instructions: "Be concise and actionable. Prioritize correctness, security, and maintainability over style nitpicks."
+
+reviews:
+  profile: "chill"
+
+  # Disable cosmetic/noisy features
+  poem: false
+  in_progress_fortune: false
+
+  # Keep helpful structure
+  high_level_summary: true
+  high_level_summary_instructions: |
+    Categorize changes into:
+    - UI/UX: React components, CSS, user interactions
+    - State/Data Model: Zustand store, types in src/types/, persistence utilities
+    - Electron/IPC: Main process, preload script, file I/O
+    - Config/Build: Vite, Forge, TypeScript config changes
+    
+    Flag any changes that affect the save file schema or serialization format.
+  collapse_walkthrough: true
+  changed_files_summary: true
+  sequence_diagrams: true
+
+  # Auto-review settings
+  auto_review:
+    enabled: true
+    drafts: false
+    ignore_title_keywords:
+      - "WIP"
+      - "DO NOT MERGE"
+
+  # Path filters: include source/docs, exclude build artifacts
+  path_filters:
+    - "src/**"
+    - "docs/**"
+    - "package.json"
+    - "package-lock.json"
+    - "tsconfig.json"
+    - "*.config.*"
+    - "vite.*.config.*"
+    - "forge.config.*"
+    - "!node_modules/**"
+    - "!.vite/**"
+    - "!out/**"
+    - "!dist/**"
+    - "!coverage/**"
+    - "!**/*.map"
+    - "!**/*.min.*"
+
+  # Path-specific review instructions
+  path_instructions:
+    - path: "src/main/**"
+      instructions: |
+        Electron main process code. Focus on:
+        - Security: Ensure nodeIntegration is disabled, contextIsolation is enabled
+        - IPC handlers: Validate inputs, sanitize file paths, handle errors gracefully
+        - File I/O: Use safe path joins, handle missing files, create backups before writes
+        - No sensitive data exposure to renderer process
+
+    - path: "src/main/preload.ts"
+      instructions: |
+        Preload script - the security boundary between main and renderer.
+        - Keep window.electronAPI surface minimal
+        - Validate and serialize all IPC payloads
+        - Never expose Node.js APIs directly to renderer
+        - Use contextBridge.exposeInMainWorld correctly
+
+    - path: "src/renderer/**"
+      instructions: |
+        React frontend code. Focus on:
+        - Hooks: Correct dependency arrays, avoid stale closures
+        - State: Immutable updates in Zustand (no direct mutation)
+        - Performance: Memoize callbacks passed to children, watch for SVG render perf
+        - TypeScript: Proper typing, avoid 'any'
+
+    - path: "src/types/**"
+      instructions: |
+        Type definitions and data model. Focus on:
+        - Backward compatibility: Changes here may break saved games
+        - Schema versioning: Ensure CURRENT_SCHEMA_VERSION is bumped if model changes
+        - Serialization: Maps/Sets must convert to arrays for JSON persistence
+        - Union types preferred over enums for JSON compatibility
+
+    - path: "src/renderer/utils/persistence.ts"
+      instructions: |
+        Persistence utilities - serialization/deserialization.
+        - Maintain backward compatibility with existing save files
+        - Handle schema migrations gracefully
+        - Validate data on load, provide sensible defaults for missing fields
+
+    - path: "package-lock.json"
+      instructions: |
+        Only comment on significant changes:
+        - New dependencies added or removed
+        - Major version bumps
+        - Suspicious or deprecated packages
+        - Security vulnerabilities
+        Ignore minor/patch version updates and transitive dependency churn.
+
+  # Tools configuration
+  tools:
+    # Disable ESLint - no config file present in repo
+    eslint:
+      enabled: false
+
+    # Enable TypeScript/JS analysis via Biome
+    biome:
+      enabled: true
+
+    # Enable secret scanning
+    gitleaks:
+      enabled: true
+
+    # Enable YAML linting for config files
+    yamllint:
+      enabled: true
+
+    # Enable markdown linting for docs
+    markdownlint:
+      enabled: true
+
+chat:
+  auto_reply: true
+  art: false
+
+knowledge_base:
+  opt_out: false
+  learnings:
+    scope: "auto"
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "CONTRIBUTING.md"
+      - "README.md"
+      - "docs/ARCHITECTURE.md"
+      - "docs/civ6-planner-design-doc.md"
