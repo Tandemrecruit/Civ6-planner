@@ -1,3 +1,12 @@
+/**
+ * @fileoverview Main game view component with map and inspector.
+ *
+ * This component provides the primary planning interface, combining the
+ * hex grid map with the header bar and tile inspector sidebar.
+ *
+ * @module renderer/components/GameView
+ */
+
 import React, { useState } from "react";
 import { useGameStore } from "../store";
 import { HexCoord, Tile, coordKey } from "../../types/model";
@@ -6,10 +15,42 @@ import TileInspector from "./TileInspector";
 import { CIVS } from "../data/civs";
 import "./GameView.css";
 
+/**
+ * Props for the GameView component.
+ */
 interface GameViewProps {
+  /**
+   * Callback fired when the user clicks "New Game" and confirms.
+   * Used to navigate back to the setup screen.
+   */
   onNewGame: () => void;
 }
 
+/**
+ * Main game planning interface with map, header, and inspector.
+ *
+ * Layout structure:
+ * - Header bar: Civ/leader info, turn counter, stats, and "New Game" button
+ * - Content area: HexGrid map (fills available space)
+ * - Sidebar: TileInspector (appears when a tile is selected)
+ * - Dialog overlay: Turn advancement modal
+ *
+ * State management:
+ * - Selected tile coordinates tracked locally
+ * - Turn dialog visibility and input value
+ * - All game data from Zustand store
+ *
+ * @param props - Component props
+ * @param props.onNewGame - Callback to return to setup screen
+ *
+ * @example
+ * const [showGame, setShowGame] = useState(false);
+ *
+ * if (!showGame) {
+ *   return <GameSetup onStart={() => setShowGame(true)} />;
+ * }
+ * return <GameView onNewGame={() => setShowGame(false)} />;
+ */
 const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
   const { setup, currentTurn, cities, tiles, advanceTurn } = useGameStore();
 

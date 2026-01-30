@@ -1,3 +1,13 @@
+/**
+ * @fileoverview Interactive hexagonal grid map component.
+ *
+ * This component renders the main game map as an SVG hex grid with
+ * pan/zoom navigation. It displays tiles with terrain, features,
+ * districts, improvements, and planning indicators.
+ *
+ * @module renderer/components/HexGrid
+ */
+
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useGameStore } from "../store";
 import { HexCoord, Tile, coordKey } from "../../types/model";
@@ -16,11 +26,48 @@ import {
 } from "../utils/hexUtils";
 import "./HexGrid.css";
 
+/**
+ * Props for the HexGrid component.
+ */
 interface HexGridProps {
+  /**
+   * Callback fired when a tile is clicked.
+   * Receives the hex coordinates and the tile data (or null for empty hexes).
+   */
   onTileSelect: (coord: HexCoord, tile: Tile | null) => void;
+
+  /**
+   * Currently selected tile coordinates, used for highlighting.
+   * Pass null when no tile is selected.
+   */
   selectedTile: HexCoord | null;
 }
 
+/**
+ * Interactive SVG hex grid map with pan/zoom navigation.
+ *
+ * Features:
+ * - Renders all tiles from the game store with terrain, features, and overlays
+ * - Mouse wheel zoom (centered on cursor position)
+ * - Pan via middle-click drag or shift+left-click drag
+ * - Click to select tiles (existing or empty grid positions)
+ * - Visual indicators for districts, improvements, resources, rivers, and plans
+ * - Grid guide overlay showing empty hex positions
+ *
+ * @param props - Component props
+ * @param props.onTileSelect - Callback when a tile is clicked
+ * @param props.selectedTile - Currently selected tile for highlighting
+ *
+ * @example
+ * const [selected, setSelected] = useState<HexCoord | null>(null);
+ *
+ * const handleSelect = (coord: HexCoord, tile: Tile | null) => {
+ *   setSelected(coord);
+ *   // Open tile inspector, etc.
+ * };
+ *
+ * return <HexGrid onTileSelect={handleSelect} selectedTile={selected} />;
+ */
 const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
   const { tiles, cities } = useGameStore();
   const svgRef = useRef<SVGSVGElement>(null);

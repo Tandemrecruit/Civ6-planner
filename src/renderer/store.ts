@@ -1,3 +1,21 @@
+/**
+ * @fileoverview Zustand store for managing global game state.
+ *
+ * This module provides a centralized state management solution using Zustand.
+ * It extends the core GameState with actions for all game operations including
+ * tile management, city management, research queues, and recommendations.
+ *
+ * @module renderer/store
+ *
+ * @example
+ * // Access state and actions in a React component
+ * const { tiles, cities, addTile } = useGameStore();
+ *
+ * @example
+ * // Subscribe to specific state slices
+ * const currentTurn = useGameStore((state) => state.currentTurn);
+ */
+
 import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -17,53 +35,328 @@ import {
   PolicyLoadout,
 } from "../types/model";
 
+/**
+ * Combined game state and actions interface.
+ *
+ * Extends {@link GameState} with:
+ * - Transient state (recommendations) that isn't persisted
+ * - Action methods for all state mutations
+ *
+ * All mutations are immutable - actions return new state objects rather than
+ * modifying existing state. This ensures React components re-render correctly.
+ *
+ * @example
+ * // Using the store hook
+ * const Component = () => {
+ *   const { tiles, addTile, updateTile } = useGameStore();
+ *   // ...
+ * };
+ */
 interface GameStore extends GameState {
-  // Recommendations (not persisted)
+  // ============================================================================
+  // TRANSIENT STATE (not persisted)
+  // ============================================================================
+
+  /**
+   * AI-generated recommendations for the player.
+   * These are computed at runtime and not saved to disk.
+   */
   recommendations: Recommendation[];
 
-  // Actions - Game lifecycle
+  // ============================================================================
+  // GAME LIFECYCLE ACTIONS
+  // ============================================================================
+
+  /**
+   * Initialize a new game with the given setup configuration.
+   * Resets all state to defaults while preserving the setup.
+   *
+   * @param setup - Initial game configuration (civ, leader, victory type, etc.)
+   *
+   * @example
+   * newGame({
+   *   playerCiv: "korea",
+   *   playerLeader: "seondeok",
+   *   victoryType: "science",
+   *   gameSpeed: "standard",
+   *   dlc: { gatheringStorm: true, riseFall: true, ... }
+   * });
+   */
   newGame: (setup: GameSetup) => void;
+
+  /**
+   * Load a previously saved game state.
+   * Replaces all current state with the loaded state.
+   *
+   * @param state - Complete game state to restore
+   */
   loadState: (state: GameState) => void;
+
+  /**
+   * Advance the game to a new turn number.
+   * Updates the currentTurn and lastUpdated timestamp.
+   *
+   * @param newTurn - The new turn number (must be > currentTurn)
+   *
+   * @example
+   * advanceTurn(25); // Jump to turn 25
+   */
   advanceTurn: (newTurn: number) => void;
 
-  // Actions - Tiles
+  // ============================================================================
+  // TILE ACTIONS
+  // ============================================================================
+
+  /**
+   * Add a new tile to the map.
+   * Automatically initializes plannedStates, isLocked, and isPillaged.
+   *
+   * @param tile - Tile data without auto-generated fields
+   *
+   * @example
+   * addTile({
+   *   coord: { q: 3, r: -1 },
+   *   terrain: "grassland",
+   *   modifier: "hills",
+   *   features: ["woods"],
+   *   riverEdges: [false, false, false, false, false, false]
+   * });
+   */
   addTile: (tile: Omit<Tile, "plannedStates" | "isLocked" | "isPillaged">) => void;
+
+  /**
+   * Update properties of an existing tile.
+   *
+   * @param coord - Coordinates of the tile to update
+   * @param updates - Partial tile object with fields to update
+   *
+   * @example
+   * updateTile({ q: 3, r: -1 }, { district: "campus", improvement: undefined });
+   */
   updateTile: (coord: HexCoord, updates: Partial<Tile>) => void;
+
+  /**
+   * Add a planned future state to a tile's timeline.
+   *
+   * @param coord - Coordinates of the tile
+   * @param plan - Plan data (id is auto-generated)
+   *
+   * @example
+   * addTilePlan({ q: 3, r: -1 }, {
+   *   trigger: { type: "tech", techId: "apprenticeship" },
+   *   action: { type: "place_district", district: "industrial_zone" },
+   *   rationale: "+4 adjacency from mines"
+   * });
+   */
   addTilePlan: (coord: HexCoord, plan: Omit<TilePlannedState, "id">) => void;
+
+  /**
+   * Remove a planned state from a tile.
+   *
+   * @param coord - Coordinates of the tile
+   * @param planId - ID of the plan to remove
+   */
   removeTilePlan: (coord: HexCoord, planId: string) => void;
+
+  /**
+   * Lock or unlock a tile to prevent/allow recommendation changes.
+   *
+   * @param coord - Coordinates of the tile
+   * @param locked - Whether the tile should be locked
+   */
   lockTile: (coord: HexCoord, locked: boolean) => void;
 
-  // Actions - Cities
+  // ============================================================================
+  // CITY ACTIONS
+  // ============================================================================
+
+  /**
+   * Add a new city to the game.
+   * Automatically generates id and initializes buildQueue and plannedDistricts.
+   *
+   * @param city - City data without auto-generated fields
+   *
+   * @example
+   * addCity({
+   *   name: "Seoul",
+   *   location: { q: 0, r: 0 },
+   *   population: 1,
+   *   housingCap: 3,
+   *   amenities: 0,
+   *   ownedTiles: [{ q: 0, r: 0 }],
+   *   workedTiles: [{ q: 0, r: 0 }],
+   *   districts: [{ type: "city_center", tile: { q: 0, r: 0 }, buildings: [], isPillaged: false }]
+   * });
+   */
   addCity: (city: Omit<City, "id" | "buildQueue" | "plannedDistricts">) => void;
+
+  /**
+   * Update properties of an existing city.
+   *
+   * @param cityId - ID of the city to update
+   * @param updates - Partial city object with fields to update
+   */
   updateCity: (cityId: string, updates: Partial<City>) => void;
+
+  /**
+   * Add an item to a city's build queue.
+   *
+   * @param cityId - ID of the city
+   * @param item - Build queue item (id and isLocked are auto-set)
+   */
   addToBuildQueue: (cityId: string, item: Omit<BuildQueueItem, "id" | "isLocked">) => void;
+
+  /**
+   * Remove an item from a city's build queue.
+   *
+   * @param cityId - ID of the city
+   * @param itemId - ID of the queue item to remove
+   */
   removeFromBuildQueue: (cityId: string, itemId: string) => void;
+
+  /**
+   * Reorder an item in a city's build queue.
+   *
+   * @param cityId - ID of the city
+   * @param itemId - ID of the queue item to move
+   * @param newIndex - Target position in the queue
+   */
   reorderBuildQueue: (cityId: string, itemId: string, newIndex: number) => void;
 
-  // Actions - Research & Civics
+  // ============================================================================
+  // RESEARCH & CIVICS ACTIONS
+  // ============================================================================
+
+  /**
+   * Add a technology to the research queue.
+   *
+   * @param techId - ID of the technology to queue
+   */
   addToTechQueue: (techId: string) => void;
+
+  /**
+   * Remove a technology from the research queue.
+   *
+   * @param queueItemId - ID of the queue entry to remove
+   */
   removeFromTechQueue: (queueItemId: string) => void;
+
+  /**
+   * Reorder a technology in the research queue.
+   *
+   * @param itemId - ID of the queue entry to move
+   * @param newIndex - Target position in the queue
+   */
   reorderTechQueue: (itemId: string, newIndex: number) => void;
+
+  /**
+   * Mark a technology as completed.
+   * Moves it to completedTechs and removes from queue.
+   *
+   * @param techId - ID of the completed technology
+   */
   completeTech: (techId: string) => void;
+
+  /**
+   * Add a civic to the civics queue.
+   *
+   * @param civicId - ID of the civic to queue
+   */
   addToCivicQueue: (civicId: string) => void;
+
+  /**
+   * Remove a civic from the civics queue.
+   *
+   * @param queueItemId - ID of the queue entry to remove
+   */
   removeFromCivicQueue: (queueItemId: string) => void;
+
+  /**
+   * Reorder a civic in the civics queue.
+   *
+   * @param itemId - ID of the queue entry to move
+   * @param newIndex - Target position in the queue
+   */
   reorderCivicQueue: (itemId: string, newIndex: number) => void;
+
+  /**
+   * Mark a civic as completed.
+   * Moves it to completedCivics and removes from queue.
+   *
+   * @param civicId - ID of the completed civic
+   */
   completeCivic: (civicId: string) => void;
 
-  // Actions - Policies
+  // ============================================================================
+  // POLICY ACTIONS
+  // ============================================================================
+
+  /**
+   * Update the current government and policy card configuration.
+   *
+   * @param loadout - New policy loadout with government and slot assignments
+   */
   updatePolicies: (loadout: PolicyLoadout) => void;
 
-  // Actions - AI Civs
+  // ============================================================================
+  // AI CIV ACTIONS
+  // ============================================================================
+
+  /**
+   * Add a discovered AI civilization.
+   *
+   * @param civ - AI civ data (id is auto-generated)
+   */
   addAICiv: (civ: Omit<AICiv, "id">) => void;
+
+  /**
+   * Update properties of an AI civilization.
+   *
+   * @param civId - ID of the AI civ to update
+   * @param updates - Partial AI civ object with fields to update
+   */
   updateAICiv: (civId: string, updates: Partial<AICiv>) => void;
+
+  /**
+   * Set the threat level assessment for an AI civilization.
+   *
+   * @param civId - ID of the AI civ
+   * @param level - Assessed threat level
+   */
   setThreatLevel: (civId: string, level: ThreatLevel) => void;
 
-  // Actions - Recommendations
+  // ============================================================================
+  // RECOMMENDATION ACTIONS
+  // ============================================================================
+
+  /**
+   * Add a new recommendation from the analysis engine.
+   * Automatically assigns id, dismissed=false, and createdAt.
+   *
+   * @param rec - Recommendation data without auto-generated fields
+   */
   addRecommendation: (rec: Omit<Recommendation, "id" | "dismissed" | "createdAt">) => void;
+
+  /**
+   * Mark a recommendation as dismissed by the user.
+   *
+   * @param recId - ID of the recommendation to dismiss
+   */
   dismissRecommendation: (recId: string) => void;
+
+  /**
+   * Clear all recommendations (e.g., before regenerating).
+   */
   clearRecommendations: () => void;
 }
 
+/**
+ * Create an empty game state with default values.
+ * Used when starting a new game or resetting state.
+ *
+ * @returns Empty state object with initialized collections and default values
+ * @internal
+ */
 const createEmptyState = (): Omit<GameState, "setup"> => ({
   currentTurn: 1,
   currentEra: "ancient",
@@ -89,6 +382,30 @@ const createEmptyState = (): Omit<GameState, "setup"> => ({
   lastUpdated: new Date(),
 });
 
+/**
+ * Zustand store hook for accessing and updating game state.
+ *
+ * @returns The complete game store with state and actions
+ *
+ * @example
+ * // Access multiple values and actions
+ * const { tiles, cities, addTile } = useGameStore();
+ *
+ * @example
+ * // Subscribe to specific state with selector (recommended for performance)
+ * const currentTurn = useGameStore((state) => state.currentTurn);
+ * const tileCount = useGameStore((state) => state.tiles.size);
+ *
+ * @example
+ * // Use actions to update state
+ * const { addTile } = useGameStore();
+ * addTile({
+ *   coord: { q: 0, r: 0 },
+ *   terrain: "grassland",
+ *   features: [],
+ *   riverEdges: [false, false, false, false, false, false]
+ * });
+ */
 export const useGameStore = create<GameStore>((set) => ({
   // Initial state
   setup: {
