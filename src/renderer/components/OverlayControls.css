@@ -1,0 +1,139 @@
+/* Overlay Controls Styles */
+
+.overlay-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  min-width: 180px;
+  z-index: 100;
+}
+
+.overlay-header {
+  display: flex;
+  align-items: center;
+}
+
+.overlay-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.overlay-toggle:hover {
+  background: rgba(198, 166, 100, 0.1);
+}
+
+.toggle-icon {
+  font-size: 1rem;
+}
+
+.toggle-label {
+  flex: 1;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.toggle-indicator {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+.toggle-indicator.on {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.overlay-body {
+  padding: 0.75rem;
+  border-top: 1px solid rgba(198, 166, 100, 0.15);
+}
+
+.district-selector {
+  margin-bottom: 0.75rem;
+}
+
+.district-selector label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.375rem;
+}
+
+.district-selector select {
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.8rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23C6A664' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.625rem center;
+  padding-right: 2rem;
+}
+
+.district-selector select:focus {
+  outline: none;
+  border-color: var(--gold-accent);
+}
+
+.overlay-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.legend-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.legend-items {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.375rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* When enabled, add subtle glow */
+.overlay-controls.enabled {
+  box-shadow: 0 0 20px rgba(198, 166, 100, 0.15);
+}

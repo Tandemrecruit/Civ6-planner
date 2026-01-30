@@ -139,6 +139,12 @@
   overflow: hidden;
 }
 
+.map-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
 /* Dialog */
 .dialog-overlay {
   position: fixed;
