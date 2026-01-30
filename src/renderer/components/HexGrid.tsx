@@ -8,9 +8,9 @@
  * @module renderer/components/HexGrid
  */
 
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useGameStore } from "../store";
-import { HexCoord, Tile, coordKey } from "../../types/model";
+import { HexCoord, Tile, DistrictType, coordKey } from "../../types/model";
 import {
   hexToPixel,
   pixelToHex,
@@ -24,6 +24,10 @@ import {
   getRiverEdgePoints,
   HEX_SIZE,
 } from "../utils/hexUtils";
+import {
+  calculateAdjacency,
+  getAdjacencyColor,
+} from "../utils/adjacencyCalculator";
 import "./HexGrid.css";
 
 /**
@@ -41,6 +45,13 @@ interface HexGridProps {
    * Pass null when no tile is selected.
    */
   selectedTile: HexCoord | null;
+
+  /**
+   * District type to show adjacency overlay for.
+   * When set to a district type, shows color-coded adjacency bonuses on valid tiles.
+   * Pass null or undefined to disable overlay.
+   */
+  overlayDistrict?: DistrictType | null;
 }
 
 /**
@@ -68,8 +79,8 @@ interface HexGridProps {
  *
  * return <HexGrid onTileSelect={handleSelect} selectedTile={selected} />;
  */
-const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
-  const { tiles, cities } = useGameStore();
+const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDistrict }) => {
+  const { tiles, cities, setup } = useGameStore();
   const svgRef = useRef<SVGSVGElement>(null);
 
   // Pan and zoom state
@@ -627,6 +638,81 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
     return guides;
   };
 
+  // Calculate adjacency bonuses for overlay mode
+  const overlayData = useMemo(() => {
+    if (!overlayDistrict) return null;
+
+    const data: Array<{
+      coord: HexCoord;
+      bonus: number;
+      canPlace: boolean;
+    }> = [];
+
+    // Calculate for all existing tiles
+    tiles.forEach((tile, key) => {
+      // Skip tiles that already have districts (except city_center which doesn't count)
+      const hasDistrict = tile.district !== undefined;
+      // Skip mountains
+      const isMountain = tile.modifier === "mountain";
+      // Check water tiles (only harbor can be placed there)
+      const isWater = tile.terrain === "coast" || tile.terrain === "ocean";
+      const canPlaceOnWater = overlayDistrict === "harbor" && isWater;
+      const canPlaceOnLand = !isWater && !isMountain && !hasDistrict;
+
+      const canPlace = canPlaceOnWater || canPlaceOnLand;
+
+      const result = calculateAdjacency(tile.coord, overlayDistrict, tiles, setup.playerCiv);
+      data.push({
+        coord: tile.coord,
+        bonus: result.bonus,
+        canPlace,
+      });
+    });
+
+    return data;
+  }, [overlayDistrict, tiles, setup.playerCiv]);
+
+  // Render adjacency overlay badges on tiles
+  const renderOverlay = () => {
+    if (!overlayData || !overlayDistrict) return null;
+
+    return overlayData.map(({ coord, bonus, canPlace }) => {
+      if (!canPlace) return null;
+
+      const { x, y } = hexToPixel(coord);
+      const color = getAdjacencyColor(bonus);
+      const key = coordKey(coord);
+
+      return (
+        <g key={`overlay-${key}`} className="adjacency-overlay" pointerEvents="none">
+          {/* Background circle */}
+          <circle
+            cx={x}
+            cy={y}
+            r={HEX_SIZE * 0.4}
+            fill={color}
+            opacity={0.85}
+            stroke="#fff"
+            strokeWidth={2}
+          />
+          {/* Bonus text */}
+          <text
+            x={x}
+            y={y}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontSize={HEX_SIZE * 0.4}
+            fontWeight="bold"
+            fill="#fff"
+            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+          >
+            +{bonus}
+          </text>
+        </g>
+      );
+    });
+  };
+
   return (
     <div className="hex-grid-container">
       <svg
@@ -643,6 +729,11 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
         <g className="tiles">
           {Array.from(tiles.values()).map((tile) => renderHex(tile))}
         </g>
+
+        {/* Adjacency overlay */}
+        {overlayDistrict && (
+          <g className="adjacency-overlays">{renderOverlay()}</g>
+        )}
 
         {/* Selected tile highlight */}
         {selectedTile && (

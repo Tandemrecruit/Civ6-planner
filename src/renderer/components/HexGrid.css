@@ -53,3 +53,18 @@
 .grid-controls-hint span {
   opacity: 0.8;
 }
+
+/* Adjacency Overlay */
+.adjacency-overlays {
+  pointer-events: none;
+}
+
+.adjacency-overlay circle {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.adjacency-overlay text {
+  font-family: var(--font-display);
+  pointer-events: none;
+  user-select: none;
+}
