@@ -174,7 +174,11 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
     const hasDistrict = !!tile.district;
     const hasImprovement = !!tile.improvement;
     const primaryFeature = tile.features.length > 0 ? tile.features[0] : null;
-    const showFeatureIcon = primaryFeature && !hasDistrict && !hasImprovement && !isMountain;
+    
+    // Show feature graphics only when no district/improvement to avoid overlap
+    const showFeatureGraphics = primaryFeature && !hasDistrict && !hasImprovement && !isMountain;
+    // Show feature emoji icon only when graphics are hidden (i.e., when district/improvement present)
+    const showFeatureIcon = primaryFeature && (hasDistrict || hasImprovement) && !isMountain;
 
     return (
       <g key={key} className="hex-tile">
@@ -182,8 +186,8 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
         <polygon
           points={points}
           fill={terrainColor}
-          stroke={isSelected ? "#fbbf24" : "#1e293b"}
-          strokeWidth={isSelected ? 3 : 1.5}
+          stroke={isSelected ? "#C6A664" : "#2d3748"}
+          strokeWidth={isSelected ? 3 : 2}
           className="hex-polygon"
         />
 
@@ -192,8 +196,8 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
           <polygon points={points} fill={featureColor} pointerEvents="none" />
         )}
 
-        {/* Feature-specific patterns for better differentiation */}
-        {primaryFeature === "floodplains" && !isMountain && (
+        {/* Feature-specific patterns for better differentiation - only show when no district/improvement */}
+        {showFeatureGraphics && primaryFeature === "floodplains" && (
           <g pointerEvents="none" opacity={0.6}>
             {/* Wavy lines pattern for floodplains */}
             <path
@@ -213,7 +217,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
           </g>
         )}
 
-        {primaryFeature === "marsh" && !isMountain && (
+        {showFeatureGraphics && primaryFeature === "marsh" && (
           <g pointerEvents="none" opacity={0.7}>
             {/* Reed/grass lines for marsh */}
             <line x1={x - 8} y1={y + 10} x2={x - 10} y2={y - 5} stroke="#365314" strokeWidth={2} strokeLinecap="round" />
@@ -223,7 +227,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
           </g>
         )}
 
-        {primaryFeature === "woods" && !isMountain && (
+        {showFeatureGraphics && primaryFeature === "woods" && (
           <g pointerEvents="none">
             {/* Tree symbols for woods */}
             <polygon points={`${x - 10},${y + 8} ${x - 5},${y - 6} ${x},${y + 8}`} fill="#166534" />
@@ -233,7 +237,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
           </g>
         )}
 
-        {primaryFeature === "rainforest" && !isMountain && (
+        {showFeatureGraphics && primaryFeature === "rainforest" && (
           <g pointerEvents="none">
             {/* Dense tree symbols for rainforest */}
             <polygon points={`${x - 12},${y + 8} ${x - 6},${y - 8} ${x},${y + 8}`} fill="#14532d" />
@@ -244,7 +248,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
           </g>
         )}
 
-        {primaryFeature === "geothermal" && !isMountain && (
+        {showFeatureGraphics && primaryFeature === "geothermal" && (
           <g pointerEvents="none">
             {/* Steam/heat waves */}
             <path
@@ -265,7 +269,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
           </g>
         )}
 
-        {primaryFeature === "oasis" && !isMountain && (
+        {showFeatureGraphics && primaryFeature === "oasis" && (
           <g pointerEvents="none">
             {/* Water pool with palm */}
             <ellipse cx={x} cy={y + 4} rx={12} ry={6} fill="#0ea5e9" opacity={0.7} />
@@ -273,7 +277,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
           </g>
         )}
 
-        {primaryFeature === "reef" && !isMountain && (
+        {showFeatureGraphics && primaryFeature === "reef" && (
           <g pointerEvents="none" opacity={0.8}>
             {/* Coral dots pattern */}
             <circle cx={x - 8} cy={y - 4} r={4} fill="#f472b6" />
@@ -283,7 +287,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
           </g>
         )}
 
-        {primaryFeature === "volcanic_soil" && !isMountain && (
+        {showFeatureGraphics && primaryFeature === "volcanic_soil" && (
           <g pointerEvents="none" opacity={0.6}>
             {/* Dark soil patches */}
             <ellipse cx={x - 8} cy={y} rx={6} ry={4} fill="#44403c" />
@@ -292,7 +296,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
           </g>
         )}
 
-        {primaryFeature === "cliffs" && !isMountain && (
+        {showFeatureGraphics && primaryFeature === "cliffs" && (
           <g pointerEvents="none">
             {/* Rocky cliff face */}
             <polygon points={`${x - 15},${y + 10} ${x - 10},${y - 8} ${x - 5},${y + 10}`} fill="#64748b" />
@@ -301,8 +305,8 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
           </g>
         )}
 
-        {/* Hills indicator - triangular pattern at bottom */}
-        {isHills && (
+        {/* Hills indicator - triangular pattern at bottom (hide when feature graphics shown to avoid overlap) */}
+        {isHills && !showFeatureGraphics && (
           <>
             {/* Three small triangles to indicate elevation */}
             <polygon
@@ -363,8 +367,8 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
                   key={`river-${idx}`}
                   points={getRiverEdgePoints({ x, y }, idx)}
                   fill="none"
-                  stroke="#3b82f6"
-                  strokeWidth={4}
+                  stroke="#22d3ee"
+                  strokeWidth={5}
                   strokeLinecap="round"
                   pointerEvents="none"
                 />
@@ -373,44 +377,73 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
           </g>
         )}
 
-        {/* District indicator */}
+        {/* District indicator with background */}
         {tile.district && (
-          <text
-            x={x}
-            y={y + (isHills ? -6 : 0)}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fontSize={HEX_SIZE * 0.55}
-            pointerEvents="none"
-          >
-            {getDistrictLabel(tile.district)}
-          </text>
+          <g pointerEvents="none">
+            <circle
+              cx={x}
+              cy={y + (isHills ? -6 : 0)}
+              r={HEX_SIZE * 0.38}
+              fill="rgba(0, 0, 0, 0.5)"
+              stroke="rgba(255, 255, 255, 0.3)"
+              strokeWidth={1}
+            />
+            <text
+              x={x}
+              y={y + (isHills ? -6 : 0)}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={HEX_SIZE * 0.55}
+            >
+              {getDistrictLabel(tile.district)}
+            </text>
+          </g>
         )}
 
-        {/* Improvement indicator (only if no district) */}
+        {/* Improvement indicator with background (only if no district) */}
         {tile.improvement && !tile.district && (
-          <text
-            x={x}
-            y={y + (isHills ? -6 : 0)}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fontSize={HEX_SIZE * 0.45}
-            pointerEvents="none"
-          >
-            {getImprovementLabel(tile.improvement)}
-          </text>
+          <g pointerEvents="none">
+            <circle
+              cx={x}
+              cy={y + (isHills ? -6 : 0)}
+              r={HEX_SIZE * 0.32}
+              fill="rgba(0, 0, 0, 0.5)"
+              stroke="rgba(255, 255, 255, 0.3)"
+              strokeWidth={1}
+            />
+            <text
+              x={x}
+              y={y + (isHills ? -6 : 0)}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={HEX_SIZE * 0.45}
+            >
+              {getImprovementLabel(tile.improvement)}
+            </text>
+          </g>
         )}
 
-        {/* Feature label in corner (small, for additional clarity) */}
+        {/* Feature icon in corner - shown when district/improvement hides the feature graphics */}
         {showFeatureIcon && featureIcons[primaryFeature] && (
-          <text
-            x={x - HEX_SIZE * 0.35}
-            y={y + HEX_SIZE * 0.45}
-            fontSize={10}
-            pointerEvents="none"
-          >
-            {featureIcons[primaryFeature]}
-          </text>
+          <g pointerEvents="none">
+            <circle
+              cx={x - HEX_SIZE * 0.35}
+              cy={y + HEX_SIZE * 0.35}
+              r={9}
+              fill="rgba(0, 0, 0, 0.5)"
+              stroke="rgba(255, 255, 255, 0.3)"
+              strokeWidth={1}
+            />
+            <text
+              x={x - HEX_SIZE * 0.35}
+              y={y + HEX_SIZE * 0.38}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={10}
+            >
+              {featureIcons[primaryFeature]}
+            </text>
+          </g>
         )}
 
         {/* City name */}
@@ -437,29 +470,52 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
           </g>
         )}
 
-        {/* Planned state indicator */}
-        {hasPlans && !tile.district && !tile.improvement && (
-          <circle
-            cx={x + HEX_SIZE * 0.45}
-            cy={y - HEX_SIZE * 0.45}
-            r={7}
-            fill="#6366f1"
-            stroke="#fff"
-            strokeWidth={1.5}
-            pointerEvents="none"
-          />
+        {/* Planned state indicator - always show when there are plans */}
+        {hasPlans && (
+          <g pointerEvents="none">
+            <circle
+              cx={x + HEX_SIZE * 0.35}
+              cy={y - HEX_SIZE * 0.35}
+              r={8}
+              fill="#C6A664"
+              stroke="#fff"
+              strokeWidth={1.5}
+            />
+            <text
+              x={x + HEX_SIZE * 0.35}
+              y={y - HEX_SIZE * 0.32}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={9}
+              fill="#0f0f1a"
+              fontWeight="bold"
+            >
+              P
+            </text>
+          </g>
         )}
 
-        {/* Lock indicator */}
+        {/* Lock indicator with background */}
         {tile.isLocked && (
-          <text
-            x={x - HEX_SIZE * 0.45}
-            y={y - HEX_SIZE * 0.4}
-            fontSize={12}
-            pointerEvents="none"
-          >
-            🔒
-          </text>
+          <g pointerEvents="none">
+            <circle
+              cx={x - HEX_SIZE * 0.35}
+              cy={y - HEX_SIZE * 0.35}
+              r={9}
+              fill="rgba(0, 0, 0, 0.6)"
+              stroke="rgba(255, 255, 255, 0.4)"
+              strokeWidth={1}
+            />
+            <text
+              x={x - HEX_SIZE * 0.35}
+              y={y - HEX_SIZE * 0.32}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={11}
+            >
+              🔒
+            </text>
+          </g>
         )}
 
         {/* Resource indicator */}
@@ -545,7 +601,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
             <polygon
               points={hexCorners(hexToPixel(selectedTile))}
               fill="none"
-              stroke="#fbbf24"
+              stroke="#C6A664"
               strokeWidth={3}
               pointerEvents="none"
             />
