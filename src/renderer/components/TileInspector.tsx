@@ -409,7 +409,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
               />
               {/* Edge buttons */}
               {RIVER_EDGE_LABELS.map((label, idx) => {
-                const angles = [0, 60, 120, 180, 240, 300];
+                const angles = [30, 90, 150, 210, 270, 330];
                 const angle = angles[idx] * (Math.PI / 180);
                 const cx = Math.cos(angle) * 32;
                 const cy = Math.sin(angle) * 32;
