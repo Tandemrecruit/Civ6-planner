@@ -9,9 +9,10 @@
 
 import React, { useState } from "react";
 import { useGameStore } from "../store";
-import { HexCoord, coordKey, GameSetup as GameSetupType } from "../../types/model";
+import { HexCoord, Tile, DistrictType, coordKey } from "../../types/model";
 import HexGrid from "./HexGrid";
 import TileInspector from "./TileInspector";
+import OverlayControls from "./OverlayControls";
 import { CIVS } from "../data/civs";
 import { deserialize, serialize } from "../utils/persistence";
 import "./GameView.css";
@@ -268,7 +269,17 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
 
       {/* Main content */}
       <div className="game-content">
-        <HexGrid onTileSelect={handleTileSelect} selectedTile={selectedCoord} />
+        <div className="map-container">
+          <HexGrid
+            onTileSelect={handleTileSelect}
+            selectedTile={selectedCoord}
+            overlayDistrict={overlayDistrict}
+          />
+          <OverlayControls
+            selectedDistrict={overlayDistrict}
+            onDistrictChange={setOverlayDistrict}
+          />
+        </div>
 
         {selectedCoord && (
           <TileInspector

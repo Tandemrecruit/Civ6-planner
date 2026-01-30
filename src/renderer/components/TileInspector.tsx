@@ -22,6 +22,7 @@ import {
   StateTrigger,
   TilePlannedState,
 } from "../../types/model";
+import AdjacencyPanel from "./AdjacencyPanel";
 import "./TileInspector.css";
 
 /**
@@ -196,7 +197,7 @@ const RIVER_EDGE_LABELS = ["E", "SE", "SW", "W", "NW", "NE"];
  * )}
  */
 const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) => {
-  const { addTile, updateTile, lockTile, addTilePlan, removeTilePlan } = useGameStore();
+  const { addTile, updateTile, lockTile, addTilePlan, removeTilePlan, tiles, setup } = useGameStore();
 
   // Form state for tile properties
   const [terrain, setTerrain] = useState<Terrain>(tile?.terrain || "grassland");
@@ -768,6 +769,15 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
             )}
           </>
         )}
+
+        {/* Adjacency Bonuses */}
+        <hr />
+        <AdjacencyPanel
+          coord={coord}
+          tiles={tiles}
+          tile={tile}
+          playerCiv={setup.playerCiv}
+        />
       </div>
 
       <div className="inspector-footer">

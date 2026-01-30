@@ -8,9 +8,9 @@
  * @module renderer/components/HexGrid
  */
 
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useGameStore } from "../store";
-import { HexCoord, Tile, coordKey } from "../../types/model";
+import { HexCoord, Tile, DistrictType, coordKey } from "../../types/model";
 import {
   hexToPixel,
   pixelToHex,
@@ -24,6 +24,11 @@ import {
   getRiverEdgePoints,
   HEX_SIZE,
 } from "../utils/hexUtils";
+import {
+  calculateAdjacency,
+  getAdjacencyColor,
+  isWaterDistrict,
+} from "../utils/adjacencyCalculator";
 import "./HexGrid.css";
 
 /**
@@ -41,7 +46,104 @@ interface HexGridProps {
    * Pass null when no tile is selected.
    */
   selectedTile: HexCoord | null;
+
+  /**
+   * District type to show adjacency overlay for.
+   * When set to a district type, shows color-coded adjacency bonuses on valid tiles.
+   * Pass null or undefined to disable overlay.
+   */
+  overlayDistrict?: DistrictType | null;
 }
+
+/** Shape of one entry in the adjacency overlay (coord, bonus, canPlace). */
+interface OverlayDatum {
+  coord: HexCoord;
+  bonus: number;
+  canPlace: boolean;
+}
+
+/**
+ * Props for the AdjacencyOverlay subcomponent.
+ */
+interface AdjacencyOverlayProps {
+  overlayDistrict: DistrictType;
+  tiles: Map<string, Tile>;
+  playerCiv: string;
+}
+
+/**
+ * Renders adjacency bonus overlay badges on tiles for a given district type.
+ * Encapsulates overlay data computation and SVG rendering.
+ */
+const AdjacencyOverlay: React.FC<AdjacencyOverlayProps> = ({
+  overlayDistrict,
+  tiles,
+  playerCiv,
+}) => {
+  const overlayData = useMemo(() => {
+    const data: OverlayDatum[] = [];
+
+    tiles.forEach((tile) => {
+      const hasDistrict =
+        tile.district !== undefined && tile.district !== "city_center";
+      const isMountain = tile.modifier === "mountain";
+      const isWater = tile.terrain === "coast" || tile.terrain === "ocean";
+      const canPlaceOnWater = isWaterDistrict(overlayDistrict) && isWater;
+      const canPlaceOnLand = !isWater && !isMountain && !hasDistrict;
+
+      const canPlace = canPlaceOnWater || canPlaceOnLand;
+
+      const result = calculateAdjacency(tile.coord, overlayDistrict, tiles, playerCiv);
+      data.push({
+        coord: tile.coord,
+        bonus: result.bonus,
+        canPlace,
+      });
+    });
+
+    return data;
+  }, [overlayDistrict, tiles, playerCiv]);
+
+  if (!overlayData.length) return null;
+
+  return (
+    <g className="adjacency-overlays" pointerEvents="none">
+      {overlayData.map(({ coord, bonus, canPlace }) => {
+        if (!canPlace) return null;
+
+        const { x, y } = hexToPixel(coord);
+        const color = getAdjacencyColor(bonus);
+        const key = coordKey(coord);
+
+        return (
+          <g key={`overlay-${key}`} className="adjacency-overlay" pointerEvents="none">
+            <circle
+              cx={x}
+              cy={y}
+              r={HEX_SIZE * 0.4}
+              fill={color}
+              opacity={0.85}
+              stroke="#fff"
+              strokeWidth={2}
+            />
+            <text
+              x={x}
+              y={y}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={HEX_SIZE * 0.4}
+              fontWeight="bold"
+              fill="#fff"
+              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+            >
+              +{bonus}
+            </text>
+          </g>
+        );
+      })}
+    </g>
+  );
+};
 
 /**
  * Interactive SVG hex grid map with pan/zoom navigation.
@@ -68,8 +170,8 @@ interface HexGridProps {
  *
  * return <HexGrid onTileSelect={handleSelect} selectedTile={selected} />;
  */
-const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
-  const { tiles, cities } = useGameStore();
+const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDistrict }) => {
+  const { tiles, cities, setup } = useGameStore();
   const svgRef = useRef<SVGSVGElement>(null);
 
   // Pan and zoom state
@@ -643,6 +745,15 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
         <g className="tiles">
           {Array.from(tiles.values()).map((tile) => renderHex(tile))}
         </g>
+
+        {/* Adjacency overlay */}
+        {overlayDistrict && (
+          <AdjacencyOverlay
+            overlayDistrict={overlayDistrict}
+            tiles={tiles}
+            playerCiv={setup.playerCiv}
+          />
+        )}
 
         {/* Selected tile highlight */}
         {selectedTile && (
