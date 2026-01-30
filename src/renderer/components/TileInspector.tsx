@@ -1,3 +1,13 @@
+/**
+ * @fileoverview Tile inspector sidebar for editing tile properties and plans.
+ *
+ * This component provides a detailed form interface for viewing and editing
+ * individual tiles, including terrain, features, resources, improvements,
+ * districts, and planned future states.
+ *
+ * @module renderer/components/TileInspector
+ */
+
 import React, { useState, useEffect } from "react";
 import { useGameStore } from "../store";
 import {
@@ -14,12 +24,34 @@ import {
 } from "../../types/model";
 import "./TileInspector.css";
 
+/**
+ * Props for the TileInspector component.
+ */
 interface TileInspectorProps {
+  /**
+   * Coordinates of the tile being inspected/edited.
+   * Used to add or update the tile at this position.
+   */
   coord: HexCoord;
+
+  /**
+   * The existing tile data, or null if creating a new tile.
+   * When null, the form is in "Add Tile" mode with default values.
+   */
   tile: Tile | null;
+
+  /**
+   * Callback fired when the close button is clicked.
+   * Parent should set selectedTile to null.
+   */
   onClose: () => void;
 }
 
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+/** Available terrain types for the dropdown. */
 const TERRAINS: Terrain[] = [
   "grassland",
   "plains",
@@ -120,9 +152,49 @@ const ACTION_TYPES = [
   { value: "harvest_resource", label: "Harvest Resource" },
 ];
 
-// River edge labels (flat-top hex, starting from right going clockwise)
+/** River edge direction labels for the hex diagram (flat-top, clockwise from E). */
 const RIVER_EDGE_LABELS = ["E", "SE", "SW", "W", "NW", "NE"];
 
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+/**
+ * Sidebar panel for viewing and editing tile properties and plans.
+ *
+ * The inspector operates in two modes:
+ * - **Add Tile**: When `tile` is null, shows a form to create a new tile
+ *   at the given coordinates with terrain, modifier, features, and resources.
+ * - **Edit Tile**: When `tile` exists, shows all tile properties including
+ *   current state (district, improvement) and planned states.
+ *
+ * Form sections:
+ * 1. **Terrain**: Base terrain type dropdown
+ * 2. **Modifier**: Hills/mountain selection
+ * 3. **Features**: Multi-select checkboxes for natural features
+ * 4. **Rivers**: Interactive hex diagram to toggle river edges
+ * 5. **Resources**: Type, name, and revealed status (optional)
+ * 6. **Current State**: District and improvement (edit mode only)
+ * 7. **Planned States**: Timeline of future actions (edit mode only)
+ *
+ * The form state resets when the selected tile changes. All changes are
+ * applied via the "Save Changes" / "Add Tile" button.
+ *
+ * @param props - Component props
+ * @param props.coord - Tile coordinates to add/edit
+ * @param props.tile - Existing tile data or null for new tile
+ * @param props.onClose - Callback to close the inspector
+ *
+ * @example
+ * // In GameView
+ * {selectedCoord && (
+ *   <TileInspector
+ *     coord={selectedCoord}
+ *     tile={tiles.get(coordKey(selectedCoord)) || null}
+ *     onClose={() => setSelectedCoord(null)}
+ *   />
+ * )}
+ */
 const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) => {
   const { addTile, updateTile, lockTile, addTilePlan, removeTilePlan } = useGameStore();
 

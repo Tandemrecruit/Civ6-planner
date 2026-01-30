@@ -1,13 +1,30 @@
+/**
+ * @fileoverview Game setup screen component for new game configuration.
+ *
+ * This component provides the initial game setup form where players select
+ * their civilization, leader, victory type, game speed, and enabled DLC/modes.
+ *
+ * @module renderer/components/GameSetup
+ */
+
 import React, { useState, useMemo } from "react";
 import { useGameStore } from "../store";
 import { GameSetup as GameSetupType, VictoryType, GameSpeed } from "../../types/model";
 import { CIVS } from "../data/civs";
 import "./GameSetup.css";
 
+/**
+ * Props for the GameSetup component.
+ */
 interface GameSetupProps {
+  /**
+   * Callback fired when the user clicks "Start Planning".
+   * Called after the new game is initialized in the store.
+   */
   onStart: () => void;
 }
 
+/** Victory type options with display labels and icons. */
 const VICTORY_TYPES: { value: VictoryType; label: string; icon: string }[] = [
   { value: "science", label: "Science", icon: "🔬" },
   { value: "culture", label: "Culture", icon: "🎭" },
@@ -17,6 +34,7 @@ const VICTORY_TYPES: { value: VictoryType; label: string; icon: string }[] = [
   { value: "score", label: "Score", icon: "📊" },
 ];
 
+/** Game speed options with display labels. */
 const GAME_SPEEDS: { value: GameSpeed; label: string }[] = [
   { value: "online", label: "Online" },
   { value: "quick", label: "Quick" },
@@ -25,6 +43,30 @@ const GAME_SPEEDS: { value: GameSpeed; label: string }[] = [
   { value: "marathon", label: "Marathon" },
 ];
 
+/**
+ * Game setup screen for configuring a new planning session.
+ *
+ * Displays a form with:
+ * - Civilization dropdown with unique ability preview
+ * - Leader dropdown (filtered by selected civ) with ability preview
+ * - Victory type button grid
+ * - Game speed radio buttons
+ * - DLC and game mode checkboxes
+ *
+ * When the user clicks "Start Planning", creates a new game in the store
+ * with the selected configuration and calls the onStart callback.
+ *
+ * @param props - Component props
+ * @param props.onStart - Callback to navigate away from setup screen
+ *
+ * @example
+ * const [showSetup, setShowSetup] = useState(true);
+ *
+ * if (showSetup) {
+ *   return <GameSetup onStart={() => setShowSetup(false)} />;
+ * }
+ * return <GameView />;
+ */
 const GameSetup: React.FC<GameSetupProps> = ({ onStart }) => {
   const { newGame } = useGameStore();
 
