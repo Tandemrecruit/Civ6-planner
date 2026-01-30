@@ -108,58 +108,74 @@ export const hexesInRange = (center: HexCoord, range: number): HexCoord[] => {
 };
 
 /**
- * Get terrain color
+ * Get terrain color - more distinct colors for each terrain type
  */
 export const getTerrainColor = (terrain: string, modifier?: string): string => {
-  if (modifier === "mountain") return "#6b7280";
+  if (modifier === "mountain") return "#374151"; // Dark gray for mountains
 
   const colors: Record<string, string> = {
-    grassland: "#4ade80",
-    plains: "#fbbf24",
-    desert: "#fcd34d",
-    tundra: "#9ca3af",
-    snow: "#e5e7eb",
-    coast: "#38bdf8",
-    ocean: "#0ea5e9",
+    grassland: "#22c55e", // Bright green
+    plains: "#eab308",    // Golden yellow
+    desert: "#f59e0b",    // Orange-yellow (more distinct from plains)
+    tundra: "#6b7280",    // Gray
+    snow: "#e2e8f0",      // Light gray-white
+    coast: "#38bdf8",     // Light blue
+    ocean: "#0369a1",     // Dark blue
   };
 
-  let baseColor = colors[terrain] || "#6b7280";
-
-  // Darken for hills
-  if (modifier === "hills") {
-    baseColor = darkenColor(baseColor, 15);
-  }
-
-  return baseColor;
+  return colors[terrain] || "#6b7280";
 };
 
 /**
- * Darken a hex color by a percentage
+ * Get hills indicator color (used for pattern overlay)
  */
-const darkenColor = (hex: string, percent: number): string => {
-  const num = parseInt(hex.replace("#", ""), 16);
-  const amt = Math.round(2.55 * percent);
-  const R = Math.max((num >> 16) - amt, 0);
-  const G = Math.max(((num >> 8) & 0x00ff) - amt, 0);
-  const B = Math.max((num & 0x0000ff) - amt, 0);
-  return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
+export const getHillsPatternColor = (terrain: string): string => {
+  const colors: Record<string, string> = {
+    grassland: "#15803d", // Darker green
+    plains: "#a16207",    // Darker gold
+    desert: "#b45309",    // Darker orange
+    tundra: "#4b5563",    // Darker gray
+    snow: "#94a3b8",      // Medium gray
+    coast: "#0284c7",     // Darker blue
+    ocean: "#075985",     // Even darker blue
+  };
+  return colors[terrain] || "#374151";
 };
 
 /**
- * Get feature overlay color/pattern
+ * Get feature overlay color/pattern - more vibrant colors
  */
 export const getFeatureColor = (feature: string): string | null => {
   const colors: Record<string, string> = {
-    woods: "rgba(34, 139, 34, 0.4)",
-    rainforest: "rgba(0, 100, 0, 0.5)",
-    marsh: "rgba(107, 142, 35, 0.4)",
-    floodplains: "rgba(210, 180, 140, 0.3)",
-    reef: "rgba(0, 206, 209, 0.4)",
-    geothermal: "rgba(255, 69, 0, 0.4)",
-    volcanic_soil: "rgba(139, 69, 19, 0.3)",
-    oasis: "rgba(0, 191, 255, 0.5)",
+    woods: "rgba(22, 101, 52, 0.55)",       // Forest green
+    rainforest: "rgba(5, 80, 35, 0.6)",     // Dark jungle green
+    marsh: "rgba(132, 204, 22, 0.45)",      // Yellow-green
+    floodplains: "rgba(251, 191, 36, 0.35)", // Golden
+    reef: "rgba(6, 182, 212, 0.5)",         // Cyan
+    geothermal: "rgba(239, 68, 68, 0.5)",   // Red
+    volcanic_soil: "rgba(120, 53, 15, 0.45)", // Brown
+    oasis: "rgba(34, 211, 238, 0.6)",       // Bright cyan
+    cliffs: "rgba(71, 85, 105, 0.5)",       // Slate
   };
   return colors[feature] || null;
+};
+
+/**
+ * Get feature icon for display
+ */
+export const getFeatureIcon = (feature: string): string => {
+  const icons: Record<string, string> = {
+    woods: "🌲",
+    rainforest: "🌴",
+    marsh: "🌿",
+    floodplains: "〰️",
+    reef: "🐠",
+    geothermal: "♨️",
+    volcanic_soil: "🌋",
+    oasis: "🏝️",
+    cliffs: "🪨",
+  };
+  return icons[feature] || "";
 };
 
 /**
@@ -188,4 +204,62 @@ export const getDistrictLabel = (district: string): string => {
     preserve: "🌲",
   };
   return labels[district] || "?";
+};
+
+/**
+ * Get improvement icon/label
+ */
+export const getImprovementLabel = (improvement: string): string => {
+  const labels: Record<string, string> = {
+    farm: "🌾",
+    mine: "⛏️",
+    quarry: "🪨",
+    plantation: "🍃",
+    camp: "🏕️",
+    pasture: "🐄",
+    fishing_boats: "🎣",
+    lumber_mill: "🪵",
+    oil_well: "🛢️",
+    offshore_platform: "🛢️",
+    seaside_resort: "🏖️",
+    ski_resort: "⛷️",
+    fort: "🏰",
+    airstrip: "🛫",
+    missile_silo: "🚀",
+  };
+  return labels[improvement] || "?";
+};
+
+/**
+ * Get resource type color
+ */
+export const getResourceColor = (type: string): string => {
+  const colors: Record<string, string> = {
+    luxury: "#a855f7",    // Purple
+    strategic: "#ef4444", // Red
+    bonus: "#22c55e",     // Green
+  };
+  return colors[type] || "#6b7280";
+};
+
+/**
+ * Get the points for a river edge segment
+ * Edge index: 0=E, 1=NE, 2=NW, 3=W, 4=SW, 5=SE (flat-top hex)
+ */
+export const getRiverEdgePoints = (
+  center: { x: number; y: number },
+  edgeIndex: number
+): string => {
+  const startAngle = 60 * edgeIndex;
+  const endAngle = 60 * ((edgeIndex + 1) % 6);
+
+  const startRad = (Math.PI / 180) * startAngle;
+  const endRad = (Math.PI / 180) * endAngle;
+
+  const x1 = center.x + HEX_SIZE * Math.cos(startRad);
+  const y1 = center.y + HEX_SIZE * Math.sin(startRad);
+  const x2 = center.x + HEX_SIZE * Math.cos(endRad);
+  const y2 = center.y + HEX_SIZE * Math.sin(endRad);
+
+  return `${x1},${y1} ${x2},${y2}`;
 };
