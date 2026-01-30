@@ -32,7 +32,7 @@ export interface AdjacencySource {
   count: number;
   /** Bonus per adjacent source */
   bonusPerSource: number;
-  /** Total bonus from this source (count * bonusPerSource, floored) */
+  /** Total bonus from this source (count * bonusPerSource; final bonus is floor of sum of totalBonus) */
   totalBonus: number;
 }
 
@@ -191,11 +191,11 @@ export const getCivModifiers = (civId?: string): CivAdjacencyModifiers => {
 
     case "brazil":
       // Street Carnival / Copacabana: Unique entertainment complex
-      // Amazon: Rainforest tiles provide +1 adjacency to Campus, Commercial Hub, Holy Site, Theater Square
+      // Amazon: Rainforest tiles provide +1 adjacency to Commercial Hub, Holy Site, Theater Square
+      // Campus rainforest is handled solely by calculateCampusAdjacency to avoid double-counting
       return {
         ...defaultModifiers,
         featureBonuses: {
-          rainforest_campus: 1,
           rainforest_commercial_hub: 1,
           rainforest_holy_site: 1,
           rainforest_theater_square: 1,
@@ -356,7 +356,7 @@ const createSource = (
     source,
     count,
     bonusPerSource,
-    totalBonus: Math.floor(count * bonusPerSource),
+    totalBonus: count * bonusPerSource,
   };
 };
 
@@ -633,16 +633,6 @@ export const calculateAdjacency = (
   switch (district) {
     case "campus":
       sources.push(...calculateCampusAdjacency(neighbors, districtBonusMultiplier));
-      // Brazil: Rainforest provides +1 to Campus
-      if (civModifiers.featureBonuses.rainforest_campus) {
-        const rainforest = countMatching(neighbors, (t) => t.features.includes("rainforest"));
-        const brazilRainforest = createSource(
-          "Rainforest (Brazil)",
-          rainforest,
-          civModifiers.featureBonuses.rainforest_campus
-        );
-        if (brazilRainforest) sources.push(brazilRainforest);
-      }
       // Maya Observatory: Farms and Plantations
       if (civModifiers.customDistricts.campus) {
         for (const extra of civModifiers.customDistricts.campus.extraSources) {
@@ -707,7 +697,7 @@ export const calculateAdjacency = (
       return {
         district,
         bonus: Math.floor(
-          calculateHarborAdjacency(neighbors).reduce((sum, s) => sum + s.count * s.bonusPerSource, 0)
+          calculateHarborAdjacency(neighbors).reduce((sum, s) => sum + s.totalBonus, 0)
         ),
         breakdown: calculateHarborAdjacency(neighbors).filter((s) => s !== null),
       };
@@ -735,8 +725,8 @@ export const calculateAdjacency = (
   const govPlazaBonus = calculateGovernmentPlazaBonus(neighbors);
   if (govPlazaBonus) sources.push(govPlazaBonus);
 
-  // Calculate total bonus (floored to integer)
-  const rawTotal = sources.reduce((sum, s) => sum + s.count * s.bonusPerSource, 0);
+  // Calculate total bonus (floor of sum of each source's totalBonus for consistent summation)
+  const rawTotal = sources.reduce((sum, s) => sum + s.totalBonus, 0);
   const bonus = Math.floor(rawTotal);
 
   return {

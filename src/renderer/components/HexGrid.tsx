@@ -651,7 +651,8 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
     // Calculate for all existing tiles
     tiles.forEach((tile, key) => {
       // Skip tiles that already have districts (except city_center which doesn't count)
-      const hasDistrict = tile.district !== undefined;
+      const hasDistrict =
+        tile.district !== undefined && tile.district !== "city_center";
       // Skip mountains
       const isMountain = tile.modifier === "mountain";
       // Check water tiles (only harbor can be placed there)
