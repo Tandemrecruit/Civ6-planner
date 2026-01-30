@@ -163,17 +163,19 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
       rainforest: "🌴",
       marsh: "🌿",
       floodplains: "〰️",
-      reef: "🐠",
+      reef: "🪸",
       geothermal: "♨️",
       volcanic_soil: "🌋",
       oasis: "🏝️",
-      cliffs: "🪨",
+      cliffs: "🧗",
     };
 
     // Determine what icon to show (priority: district > improvement > feature)
     const hasDistrict = !!tile.district;
     const hasImprovement = !!tile.improvement;
     const primaryFeature = tile.features.length > 0 ? tile.features[0] : null;
+
+    const featureIcon = primaryFeature ? featureIcons[primaryFeature] : undefined;
     
     // Show feature graphics only when no district/improvement to avoid overlap
     const showFeatureGraphics = primaryFeature && !hasDistrict && !hasImprovement && !isMountain;
@@ -424,7 +426,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
         )}
 
         {/* Feature icon in corner - shown when district/improvement hides the feature graphics */}
-        {showFeatureIcon && featureIcons[primaryFeature] && (
+        {showFeatureIcon && featureIcon && (
           <g pointerEvents="none">
             <circle
               cx={x - HEX_SIZE * 0.35}
@@ -441,7 +443,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
               dominantBaseline="central"
               fontSize={10}
             >
-              {featureIcons[primaryFeature]}
+              {featureIcon}
             </text>
           </g>
         )}
