@@ -229,7 +229,7 @@
 .dialog-confirm {
   background: var(--gold-accent);
   border: none;
-  color: #0f0f1a;
+  color: var(--bg-primary);
   font-weight: 600;
 }
 

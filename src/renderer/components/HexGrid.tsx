@@ -192,7 +192,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
         />
 
         {/* Feature overlay - different patterns for different features */}
-        {featureColor && !isMountain && (
+        {showFeatureGraphics && featureColor && (
           <polygon points={points} fill={featureColor} pointerEvents="none" />
         )}
 
@@ -610,7 +610,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile }) => {
       </svg>
 
       {/* Controls hint */}
-      <div className="grid-controls-hint">
+      <div className="grid-controls-hint glass-panel">
         <span>Scroll to zoom</span>
         <span>Shift+drag or middle-click to pan</span>
         <span>Click to select/add tile</span>
