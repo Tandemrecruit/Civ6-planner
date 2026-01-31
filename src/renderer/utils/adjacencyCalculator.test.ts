@@ -64,4 +64,72 @@ describe("adjacencyCalculator", () => {
     expect(bySource.get("Rainforest")?.totalBonus).toBe(1);
     expect(bySource.get("District")?.totalBonus).toBe(1);
   });
+
+  it("calculateAdjacency computes Industrial Zone adjacency (aqueduct/dam/canal, strategic, quarry, mine, lumber mill)", () => {
+    const center = { q: 0, r: 0 } as const;
+
+    const tiles = new Map<string, Tile>([
+      [coordKey(center), makeTile({ coord: center })],
+      // Aqueduct / Dam / Canal (+2 each)
+      [coordKey({ q: 1, r: 0 }), makeTile({ coord: { q: 1, r: 0 }, district: "aqueduct" })],
+      [coordKey({ q: 1, r: -1 }), makeTile({ coord: { q: 1, r: -1 }, district: "dam" })],
+      [coordKey({ q: 0, r: -1 }), makeTile({ coord: { q: 0, r: -1 }, district: "canal" })],
+      // Quarry (+1)
+      [coordKey({ q: -1, r: 0 }), makeTile({ coord: { q: -1, r: 0 }, improvement: "quarry" })],
+      // Strategic resource (+1 even if unrevealed/unimproved)
+      [
+        coordKey({ q: -1, r: 1 }),
+        makeTile({
+          coord: { q: -1, r: 1 },
+          resource: { name: "Iron", type: "strategic", revealed: false },
+        }),
+      ],
+      // Mine (+0.5) and Lumber Mill (+0.5)
+      [coordKey({ q: 0, r: 1 }), makeTile({ coord: { q: 0, r: 1 }, improvement: "mine" })],
+      [coordKey({ q: 1, r: 1 }), makeTile({ coord: { q: 1, r: 1 }, improvement: "lumber_mill" })],
+    ]);
+
+    const result = calculateAdjacency(center, "industrial_zone", tiles);
+
+    // (3 × 2) + 1 + 1 + 0.5 + 0.5 + district adjacency (3 × 0.5 = 1.5) = 10.5 → 10
+    expect(result.bonus).toBe(10);
+
+    const doubled = calculateAdjacency(center, "industrial_zone", tiles, undefined, { policyMultiplier: 2 });
+    expect(doubled.baseBonus).toBe(10);
+    expect(doubled.bonus).toBe(20);
+  });
+
+  it("calculateAdjacency computes Harbor adjacency with sea resources", () => {
+    const center = { q: 0, r: 0 } as const;
+
+    const tiles = new Map<string, Tile>([
+      [coordKey(center), makeTile({ coord: center, terrain: "coast" })],
+      // Adjacent city center (+2)
+      [coordKey({ q: 1, r: 0 }), makeTile({ coord: { q: 1, r: 0 }, district: "city_center" })],
+      // Adjacent sea resources (+1 each)
+      [
+        coordKey({ q: 1, r: -1 }),
+        makeTile({
+          coord: { q: 1, r: -1 },
+          terrain: "coast",
+          resource: { name: "Fish", type: "bonus", revealed: true },
+        }),
+      ],
+      [
+        coordKey({ q: 0, r: -1 }),
+        makeTile({
+          coord: { q: 0, r: -1 },
+          terrain: "ocean",
+          resource: { name: "Crabs", type: "bonus", revealed: true },
+        }),
+      ],
+      // Adjacent district (+1 per current implementation)
+      [coordKey({ q: -1, r: 0 }), makeTile({ coord: { q: -1, r: 0 }, district: "campus" })],
+    ]);
+
+    const result = calculateAdjacency(center, "harbor", tiles);
+
+    // City Center (2) + Sea Resources (2) + District (1) = 5
+    expect(result.bonus).toBe(5);
+  });
 });

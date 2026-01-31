@@ -213,9 +213,7 @@ export const useGameStore = create<GameStore>((set) => ({
 
   removeFromBuildQueue: (cityId, itemId) =>
     set((s) => ({
-      cities: s.cities.map((c) =>
-        c.id === cityId ? { ...c, buildQueue: c.buildQueue.filter((i) => i.id !== itemId) } : c,
-      ),
+      cities: s.cities.map((c) => (c.id === cityId ? { ...c, buildQueue: c.buildQueue.filter((i) => i.id !== itemId) } : c)),
       lastUpdated: new Date(),
     })),
 
@@ -328,17 +326,12 @@ export const useGameStore = create<GameStore>((set) => ({
   // Recommendations
   addRecommendation: (rec) =>
     set((s) => ({
-      recommendations: [
-        ...s.recommendations,
-        { ...rec, id: uuidv4(), dismissed: false, createdAt: new Date() },
-      ],
+      recommendations: [...s.recommendations, { ...rec, id: uuidv4(), dismissed: false, createdAt: new Date() }],
     })),
 
   dismissRecommendation: (recId) =>
     set((s) => ({
-      recommendations: s.recommendations.map((r) =>
-        r.id === recId ? { ...r, dismissed: true } : r,
-      ),
+      recommendations: s.recommendations.map((r) => (r.id === recId ? { ...r, dismissed: true } : r)),
     })),
 
   clearRecommendations: () => set({ recommendations: [] }),

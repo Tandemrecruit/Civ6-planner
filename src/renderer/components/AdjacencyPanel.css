@@ -125,6 +125,15 @@
   text-align: right;
 }
 
+.adjacency-policy-bonus {
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  min-width: 3.5rem;
+  text-align: right;
+  opacity: 0.85;
+}
+
 .adjacency-rating {
   font-size: 0.65rem;
   font-weight: 500;

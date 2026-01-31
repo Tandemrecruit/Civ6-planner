@@ -22,6 +22,7 @@ import {
   StateTrigger,
   TilePlannedState,
 } from "../../types/model";
+import type { AdjacencyModifiers } from "../utils/adjacencyCalculator";
 import AdjacencyPanel from "./AdjacencyPanel";
 import "./TileInspector.css";
 
@@ -46,6 +47,12 @@ interface TileInspectorProps {
    * Parent should set selectedTile to null.
    */
   onClose: () => void;
+
+  /**
+   * Optional adjacency modifiers used for displaying "with policy" adjacency values.
+   * This is a UI-only helper and is not persisted.
+   */
+  adjacencyModifiers?: AdjacencyModifiers;
 }
 
 // ============================================================================
@@ -57,17 +64,7 @@ const TERRAINS: Terrain[] = ["grassland", "plains", "desert", "tundra", "snow", 
 
 const MODIFIERS: (TerrainModifier | "none")[] = ["none", "hills", "mountain"];
 
-const FEATURES: Feature[] = [
-  "woods",
-  "rainforest",
-  "marsh",
-  "floodplains",
-  "reef",
-  "geothermal",
-  "volcanic_soil",
-  "oasis",
-  "cliffs",
-];
+const FEATURES: Feature[] = ["woods", "rainforest", "marsh", "floodplains", "reef", "geothermal", "volcanic_soil", "oasis", "cliffs"];
 
 const DISTRICTS: DistrictType[] = [
   "city_center",
@@ -147,19 +144,7 @@ const COMMON_RESOURCES: Record<ResourceType, string[]> = {
     "Wine",
   ],
   strategic: ["Horses", "Iron", "Niter", "Coal", "Oil", "Aluminum", "Uranium"],
-  bonus: [
-    "Bananas",
-    "Cattle",
-    "Copper",
-    "Crabs",
-    "Deer",
-    "Fish",
-    "Maize",
-    "Rice",
-    "Sheep",
-    "Stone",
-    "Wheat",
-  ],
+  bonus: ["Bananas", "Cattle", "Copper", "Crabs", "Deer", "Fish", "Maize", "Rice", "Sheep", "Stone", "Wheat"],
 };
 
 const TRIGGER_TYPES = [
@@ -221,9 +206,8 @@ const RIVER_EDGE_LABELS = ["E", "SE", "SW", "W", "NW", "NE"];
  *   />
  * )}
  */
-const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) => {
-  const { addTile, updateTile, lockTile, addTilePlan, removeTilePlan, tiles, setup } =
-    useGameStore();
+const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose, adjacencyModifiers }) => {
+  const { addTile, updateTile, lockTile, addTilePlan, removeTilePlan, tiles, setup } = useGameStore();
 
   // Form state for tile properties
   const [terrain, setTerrain] = useState<Terrain>(tile?.terrain || "grassland");
@@ -239,9 +223,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
   const [resourceRevealed, setResourceRevealed] = useState(tile?.resource?.revealed ?? true);
 
   // River edges state
-  const [riverEdges, setRiverEdges] = useState<boolean[]>(
-    tile?.riverEdges || [false, false, false, false, false, false],
-  );
+  const [riverEdges, setRiverEdges] = useState<boolean[]>(tile?.riverEdges || [false, false, false, false, false, false]);
 
   // Add plan form state
   const [showAddPlan, setShowAddPlan] = useState(false);
@@ -283,9 +265,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
   }, [tile, coord]);
 
   const handleFeatureToggle = (feature: Feature) => {
-    setFeatures((prev) =>
-      prev.includes(feature) ? prev.filter((f) => f !== feature) : [...prev, feature],
-    );
+    setFeatures((prev) => (prev.includes(feature) ? prev.filter((f) => f !== feature) : [...prev, feature]));
   };
 
   const handleRiverEdgeToggle = (index: number) => {
@@ -297,10 +277,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
   };
 
   const handleSave = () => {
-    const resource =
-      hasResource && resourceName
-        ? { name: resourceName, type: resourceType, revealed: resourceRevealed }
-        : undefined;
+    const resource = hasResource && resourceName ? { name: resourceName, type: resourceType, revealed: resourceRevealed } : undefined;
 
     if (isNewTile) {
       addTile({
@@ -459,10 +436,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
         {/* Modifier */}
         <div className="field-group">
           <label>Modifier</label>
-          <select
-            value={modifier}
-            onChange={(e) => setModifier(e.target.value as TerrainModifier | "none")}
-          >
+          <select value={modifier} onChange={(e) => setModifier(e.target.value as TerrainModifier | "none")}>
             {MODIFIERS.map((m) => (
               <option key={m} value={m}>
                 {formatLabel(m)}
@@ -477,11 +451,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
           <div className="checkbox-grid">
             {FEATURES.map((f) => (
               <label key={f} className="checkbox-item">
-                <input
-                  type="checkbox"
-                  checked={features.includes(f)}
-                  onChange={() => handleFeatureToggle(f)}
-                />
+                <input type="checkbox" checked={features.includes(f)} onChange={() => handleFeatureToggle(f)} />
                 <span>{formatLabel(f)}</span>
               </label>
             ))}
@@ -508,11 +478,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
                 const cy = Math.sin(angle) * 32;
                 const isActive = riverEdges[idx];
                 return (
-                  <g
-                    key={idx}
-                    onClick={() => handleRiverEdgeToggle(idx)}
-                    style={{ cursor: "pointer" }}
-                  >
+                  <g key={idx} onClick={() => handleRiverEdgeToggle(idx)} style={{ cursor: "pointer" }}>
                     <circle
                       cx={cx}
                       cy={cy}
@@ -543,11 +509,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
         {/* Resources */}
         <div className="field-group">
           <label className="checkbox-item resource-toggle">
-            <input
-              type="checkbox"
-              checked={hasResource}
-              onChange={(e) => setHasResource(e.target.checked)}
-            />
+            <input type="checkbox" checked={hasResource} onChange={(e) => setHasResource(e.target.checked)} />
             <span>Has Resource</span>
           </label>
           {hasResource && (
@@ -567,11 +529,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
                     </option>
                   ))}
                 </select>
-                <select
-                  value={resourceName}
-                  onChange={(e) => setResourceName(e.target.value)}
-                  className="resource-name-select"
-                >
+                <select value={resourceName} onChange={(e) => setResourceName(e.target.value)} className="resource-name-select">
                   <option value="">Select...</option>
                   {COMMON_RESOURCES[resourceType].map((name) => (
                     <option key={name} value={name}>
@@ -581,11 +539,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
                 </select>
               </div>
               <label className="checkbox-item revealed-toggle">
-                <input
-                  type="checkbox"
-                  checked={resourceRevealed}
-                  onChange={(e) => setResourceRevealed(e.target.checked)}
-                />
+                <input type="checkbox" checked={resourceRevealed} onChange={(e) => setResourceRevealed(e.target.checked)} />
                 <span>Revealed (tech requirement met)</span>
               </label>
             </div>
@@ -601,10 +555,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
             {/* District */}
             <div className="field-group">
               <label>District</label>
-              <select
-                value={district}
-                onChange={(e) => setDistrict(e.target.value as DistrictType | "")}
-              >
+              <select value={district} onChange={(e) => setDistrict(e.target.value as DistrictType | "")}>
                 <option value="">None</option>
                 {DISTRICTS.map((d) => (
                   <option key={d} value={d}>
@@ -617,10 +568,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
             {/* Improvement */}
             <div className="field-group">
               <label>Improvement</label>
-              <select
-                value={improvement}
-                onChange={(e) => setImprovement(e.target.value as Improvement | "")}
-              >
+              <select value={improvement} onChange={(e) => setImprovement(e.target.value as Improvement | "")}>
                 <option value="">None</option>
                 {IMPROVEMENTS.map((i) => (
                   <option key={i} value={i}>
@@ -648,10 +596,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
                       <span className="plan-action">{formatAction(plan.action)}</span>
                       {plan.rationale && <span className="plan-rationale">{plan.rationale}</span>}
                     </div>
-                    <button
-                      className="remove-plan-btn"
-                      onClick={() => removeTilePlan(coord, plan.id)}
-                    >
+                    <button className="remove-plan-btn" onClick={() => removeTilePlan(coord, plan.id)}>
                       ×
                     </button>
                   </li>
@@ -664,10 +609,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
               <div className="add-plan-form">
                 <div className="field-group">
                   <label>Trigger</label>
-                  <select
-                    value={planTriggerType}
-                    onChange={(e) => setPlanTriggerType(e.target.value)}
-                  >
+                  <select value={planTriggerType} onChange={(e) => setPlanTriggerType(e.target.value)}>
                     {TRIGGER_TYPES.map((t) => (
                       <option key={t.value} value={t.value}>
                         {t.label}
@@ -677,9 +619,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
                   {(planTriggerType === "tech" || planTriggerType === "civic") && (
                     <input
                       type="text"
-                      placeholder={
-                        planTriggerType === "tech" ? "e.g., apprenticeship" : "e.g., feudalism"
-                      }
+                      placeholder={planTriggerType === "tech" ? "e.g., apprenticeship" : "e.g., feudalism"}
                       value={planTriggerValue}
                       onChange={(e) => setPlanTriggerValue(e.target.value)}
                       className="trigger-value-input"
@@ -723,11 +663,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
                     ))}
                   </select>
                   {planActionType === "place_district" && (
-                    <select
-                      value={planActionValue}
-                      onChange={(e) => setPlanActionValue(e.target.value)}
-                      className="action-value-select"
-                    >
+                    <select value={planActionValue} onChange={(e) => setPlanActionValue(e.target.value)} className="action-value-select">
                       <option value="">Select district...</option>
                       {DISTRICTS.map((d) => (
                         <option key={d} value={d}>
@@ -737,11 +673,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
                     </select>
                   )}
                   {planActionType === "improve" && (
-                    <select
-                      value={planActionValue}
-                      onChange={(e) => setPlanActionValue(e.target.value)}
-                      className="action-value-select"
-                    >
+                    <select value={planActionValue} onChange={(e) => setPlanActionValue(e.target.value)} className="action-value-select">
                       <option value="">Select improvement...</option>
                       {IMPROVEMENTS.map((i) => (
                         <option key={i} value={i}>
@@ -770,10 +702,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
                   <button
                     className="confirm-plan-btn"
                     onClick={handleAddPlan}
-                    disabled={
-                      (planActionType === "place_district" && !planActionValue) ||
-                      (planActionType === "improve" && !planActionValue)
-                    }
+                    disabled={(planActionType === "place_district" && !planActionValue) || (planActionType === "improve" && !planActionValue)}
                   >
                     Add Plan
                   </button>
@@ -789,15 +718,12 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
 
         {/* Adjacency Bonuses */}
         <hr />
-        <AdjacencyPanel coord={coord} tiles={tiles} tile={tile} playerCiv={setup.playerCiv} />
+        <AdjacencyPanel coord={coord} tiles={tiles} tile={tile} playerCiv={setup.playerCiv} modifiers={adjacencyModifiers} />
       </div>
 
       <div className="inspector-footer">
         {!isNewTile && tile && (
-          <button
-            className={`lock-btn ${tile.isLocked ? "locked" : ""}`}
-            onClick={handleLockToggle}
-          >
+          <button className={`lock-btn ${tile.isLocked ? "locked" : ""}`} onClick={handleLockToggle}>
             {tile.isLocked ? "🔒 Locked" : "🔓 Unlocked"}
           </button>
         )}

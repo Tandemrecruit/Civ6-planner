@@ -13,6 +13,7 @@ import { HexCoord, DistrictType, coordKey, GameSetup } from "../../types/model";
 import HexGrid from "./HexGrid";
 import TileInspector from "./TileInspector";
 import OverlayControls from "./OverlayControls";
+import type { AdjacencyModifiers } from "../utils/adjacencyCalculator";
 import { CIVS } from "../data/civs";
 import { deserialize, serialize } from "../utils/persistence";
 import "./GameView.css";
@@ -65,6 +66,7 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
     message: string;
   } | null>(null);
   const [overlayDistrict, setOverlayDistrict] = useState<DistrictType | null>(null);
+  const [overlayPolicyEnabled, setOverlayPolicyEnabled] = useState(false);
 
   // Ref for status timeout to enable cleanup on unmount
   const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -161,11 +163,7 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
       const parsed: unknown = JSON.parse(result.data);
 
       // Validate basic structure before deserializing
-      if (
-        typeof parsed !== "object" ||
-        parsed === null ||
-        typeof (parsed as Record<string, unknown>).schemaVersion !== "number"
-      ) {
+      if (typeof parsed !== "object" || parsed === null || typeof (parsed as Record<string, unknown>).schemaVersion !== "number") {
         showStatus("Load failed: invalid or incompatible save file", "error");
         return;
       }
@@ -230,6 +228,7 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
   };
 
   const selectedTile = selectedCoord ? tiles.get(coordKey(selectedCoord)) || null : null;
+  const overlayModifiers: AdjacencyModifiers | undefined = overlayPolicyEnabled ? { policyMultiplier: 2 } : undefined;
 
   const victoryIcon: Record<string, string> = {
     science: "🔬",
@@ -273,11 +272,7 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
             <button className="header-action-btn" onClick={handleBackup} title="Backup autosave">
               Backup
             </button>
-            <button
-              className="header-action-btn"
-              onClick={handleOpenSaveLocation}
-              title="Open autosave location"
-            >
+            <button className="header-action-btn" onClick={handleOpenSaveLocation} title="Open autosave location">
               Open Save Folder
             </button>
           </div>
@@ -308,15 +303,18 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
             onTileSelect={handleTileSelect}
             selectedTile={selectedCoord}
             overlayDistrict={overlayDistrict}
+            overlayModifiers={overlayModifiers}
           />
           <OverlayControls
             selectedDistrict={overlayDistrict}
             onDistrictChange={setOverlayDistrict}
+            policyEnabled={overlayPolicyEnabled}
+            onPolicyEnabledChange={setOverlayPolicyEnabled}
           />
         </div>
 
         {selectedCoord && (
-          <TileInspector coord={selectedCoord} tile={selectedTile} onClose={handleCloseInspector} />
+          <TileInspector coord={selectedCoord} tile={selectedTile} onClose={handleCloseInspector} adjacencyModifiers={overlayModifiers} />
         )}
       </div>
 
@@ -341,11 +339,7 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
               <button className="dialog-cancel" onClick={() => setShowTurnDialog(false)}>
                 Cancel
               </button>
-              <button
-                className="dialog-confirm"
-                onClick={handleAdvanceTurn}
-                disabled={!newTurnInput || parseInt(newTurnInput, 10) <= currentTurn}
-              >
+              <button className="dialog-confirm" onClick={handleAdvanceTurn} disabled={!newTurnInput || parseInt(newTurnInput, 10) <= currentTurn}>
                 Advance
               </button>
             </div>

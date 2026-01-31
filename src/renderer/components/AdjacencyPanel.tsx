@@ -16,6 +16,7 @@ import {
   getAdjacencyColor,
   getAdjacencyRating,
   isWaterDistrict,
+  type AdjacencyModifiers,
 } from "../utils/adjacencyCalculator";
 import { getDistrictLabel } from "../utils/hexUtils";
 import "./AdjacencyPanel.css";
@@ -32,6 +33,9 @@ interface AdjacencyPanelProps {
   tile: Tile | null;
   /** Player civilization for civ-specific bonuses */
   playerCiv?: string;
+
+  /** Optional modifiers (e.g. policy adjacency multiplier). */
+  modifiers?: AdjacencyModifiers;
 }
 
 /**
@@ -54,14 +58,24 @@ interface AdjacencyPanelProps {
  *   playerCiv="korea"
  * />
  */
-const AdjacencyPanel: React.FC<AdjacencyPanelProps> = ({ coord, tiles, tile, playerCiv }) => {
+const AdjacencyPanel: React.FC<AdjacencyPanelProps> = ({ coord, tiles, tile, playerCiv, modifiers }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [expandedDistrict, setExpandedDistrict] = useState<string | null>(null);
 
-  // Calculate adjacency bonuses
-  const adjacencyResults = useMemo(() => {
+  // Calculate adjacency bonuses (base + optionally with policy multiplier)
+  const baseAdjacencyResults = useMemo(() => {
     return calculateAllAdjacencies(coord, tiles, playerCiv);
   }, [coord, tiles, playerCiv]);
+
+  const policyAdjacencyResults = useMemo(() => {
+    if (!modifiers?.policyMultiplier || modifiers.policyMultiplier === 1) return null;
+    return calculateAllAdjacencies(coord, tiles, playerCiv, modifiers);
+  }, [coord, tiles, playerCiv, modifiers]);
+
+  const adjacencyResults = policyAdjacencyResults ?? baseAdjacencyResults;
+  const baseByDistrict = useMemo(() => {
+    return new Map(baseAdjacencyResults.map((r) => [r.district, r]));
+  }, [baseAdjacencyResults]);
 
   // Filter to only show districts with bonus > 0 or top 5
   const displayResults = useMemo(() => {
@@ -101,20 +115,19 @@ const AdjacencyPanel: React.FC<AdjacencyPanelProps> = ({ coord, tiles, tile, pla
 
       {isExpanded && (
         <div className="adjacency-content">
-          {hasExistingDistrict && (
-            <p className="adjacency-notice">
-              This tile already has a {getDistrictDisplayName(tile!.district!)}.
-            </p>
-          )}
+          {hasExistingDistrict && <p className="adjacency-notice">This tile already has a {getDistrictDisplayName(tile!.district!)}.</p>}
 
           {displayResults.length === 0 ? (
             <p className="adjacency-empty">No significant adjacency bonuses.</p>
           ) : (
             <ul className="adjacency-list">
               {displayResults.map((result) => (
+                // If policy is enabled, show base bonus alongside the policy-adjusted bonus.
+                // Sources don't change (multiplier is applied after rounding), so breakdown remains accurate.
                 <AdjacencyItem
                   key={result.district}
                   result={result}
+                  baseBonus={baseByDistrict.get(result.district)?.bonus}
                   isExpanded={expandedDistrict === result.district}
                   onToggle={() => toggleDistrict(result.district)}
                   isWater={isWater}
@@ -124,9 +137,7 @@ const AdjacencyPanel: React.FC<AdjacencyPanelProps> = ({ coord, tiles, tile, pla
           )}
 
           {!hasExistingDistrict && displayResults.some((r) => r.bonus >= 3) && (
-            <p className="adjacency-tip">
-              💡 Tiles with +3 or higher adjacency are excellent district locations.
-            </p>
+            <p className="adjacency-tip">💡 Tiles with +3 or higher adjacency are excellent district locations.</p>
           )}
         </div>
       )}
@@ -139,17 +150,19 @@ const AdjacencyPanel: React.FC<AdjacencyPanelProps> = ({ coord, tiles, tile, pla
  */
 interface AdjacencyItemProps {
   result: AdjacencyResult;
+  baseBonus?: number;
   isExpanded: boolean;
   onToggle: () => void;
   isWater: boolean;
 }
 
-const AdjacencyItem: React.FC<AdjacencyItemProps> = ({ result, isExpanded, onToggle, isWater }) => {
+const AdjacencyItem: React.FC<AdjacencyItemProps> = ({ result, baseBonus, isExpanded, onToggle, isWater }) => {
   const { district, bonus, breakdown } = result;
   const color = getAdjacencyColor(bonus);
   const rating = getAdjacencyRating(bonus);
   const icon = getDistrictLabel(district);
   const name = getDistrictDisplayName(district);
+  const showPolicy = baseBonus !== undefined && baseBonus !== bonus;
 
   // Water-only districts (e.g. Harbor, Water Park) can be placed on water
   const isValidForTerrain = !isWater || isWaterDistrict(district);
@@ -160,14 +173,17 @@ const AdjacencyItem: React.FC<AdjacencyItemProps> = ({ result, isExpanded, onTog
         <span className="district-icon">{icon}</span>
         <span className="district-name">{name}</span>
         <span className="adjacency-bonus" style={{ color }}>
-          +{bonus}
+          +{showPolicy ? baseBonus : bonus}
         </span>
+        {showPolicy && (
+          <span className="adjacency-policy-bonus" style={{ color }}>
+            → +{bonus}
+          </span>
+        )}
         <span className="adjacency-rating" style={{ color }}>
           {rating}
         </span>
-        {breakdown.length > 0 && (
-          <span className={`breakdown-arrow ${isExpanded ? "expanded" : ""}`}>▸</span>
-        )}
+        {breakdown.length > 0 && <span className={`breakdown-arrow ${isExpanded ? "expanded" : ""}`}>▸</span>}
       </button>
 
       {isExpanded && breakdown.length > 0 && (

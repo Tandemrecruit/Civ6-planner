@@ -86,16 +86,7 @@ export type TerrainModifier = "hills" | "mountain";
  * - `oasis` - +3 food +1 gold in deserts, fresh water
  * - `cliffs` - Coastal feature, affects naval movement
  */
-export type Feature =
-  | "woods"
-  | "rainforest"
-  | "marsh"
-  | "floodplains"
-  | "reef"
-  | "geothermal"
-  | "volcanic_soil"
-  | "oasis"
-  | "cliffs";
+export type Feature = "woods" | "rainforest" | "marsh" | "floodplains" | "reef" | "geothermal" | "volcanic_soil" | "oasis" | "cliffs";
 
 /**
  * Classification of resource types by their game function.
@@ -341,15 +332,7 @@ export interface Tile {
  * - `wonder` - Designated for wonder construction
  * - `generalist` - Balanced development
  */
-export type CitySpecialty =
-  | "science"
-  | "production"
-  | "culture"
-  | "faith"
-  | "gold"
-  | "military"
-  | "wonder"
-  | "generalist";
+export type CitySpecialty = "science" | "production" | "culture" | "faith" | "gold" | "military" | "wonder" | "generalist";
 
 /**
  * An item in a city's build queue.
@@ -469,14 +452,7 @@ export interface City {
  * - `war` - Currently at war
  * - `allied` - Formal alliance active
  */
-export type DiplomaticStatus =
-  | "unknown"
-  | "friendly"
-  | "neutral"
-  | "unfriendly"
-  | "denounced"
-  | "war"
-  | "allied";
+export type DiplomaticStatus = "unknown" | "friendly" | "neutral" | "unfriendly" | "denounced" | "war" | "allied";
 
 /**
  * Assessed military threat level from an AI civilization.
@@ -644,13 +620,7 @@ export interface PolicyLoadout {
  * - `diplomatic` - Accumulate diplomatic victory points
  * - `score` - Highest score when turn limit reached
  */
-export type VictoryType =
-  | "science"
-  | "culture"
-  | "domination"
-  | "religious"
-  | "diplomatic"
-  | "score";
+export type VictoryType = "science" | "culture" | "domination" | "religious" | "diplomatic" | "score";
 
 /**
  * Game speed settings that affect production/research times.

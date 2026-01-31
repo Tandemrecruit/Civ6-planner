@@ -125,11 +125,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ onStart }) => {
           {/* Civ Selection */}
           <section className="setup-section">
             <h2>Civilization</h2>
-            <select
-              value={selectedCiv}
-              onChange={(e) => handleCivChange(e.target.value)}
-              className="setup-select"
-            >
+            <select value={selectedCiv} onChange={(e) => handleCivChange(e.target.value)} className="setup-select">
               <option value="">Select a civilization...</option>
               {CIVS.map((civ) => (
                 <option key={civ.id} value={civ.id}>
@@ -149,12 +145,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ onStart }) => {
           {/* Leader Selection */}
           <section className="setup-section">
             <h2>Leader</h2>
-            <select
-              value={selectedLeader}
-              onChange={(e) => setSelectedLeader(e.target.value)}
-              className="setup-select"
-              disabled={!selectedCiv}
-            >
+            <select value={selectedLeader} onChange={(e) => setSelectedLeader(e.target.value)} className="setup-select" disabled={!selectedCiv}>
               {!selectedCiv && <option value="">Select a civ first...</option>}
               {selectedCivData?.leaders.map((leader) => (
                 <option key={leader.id} value={leader.id}>
@@ -166,9 +157,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ onStart }) => {
             {selectedCivData && selectedLeader && (
               <div className="civ-info">
                 <p className="ability-label">Leader Ability:</p>
-                <p className="ability-name">
-                  {selectedCivData.leaders.find((l) => l.id === selectedLeader)?.ability}
-                </p>
+                <p className="ability-name">{selectedCivData.leaders.find((l) => l.id === selectedLeader)?.ability}</p>
               </div>
             )}
           </section>
@@ -178,11 +167,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ onStart }) => {
             <h2>Victory Focus</h2>
             <div className="victory-grid">
               {VICTORY_TYPES.map((v) => (
-                <button
-                  key={v.value}
-                  className={`victory-btn ${victoryType === v.value ? "selected" : ""}`}
-                  onClick={() => setVictoryType(v.value)}
-                >
+                <button key={v.value} className={`victory-btn ${victoryType === v.value ? "selected" : ""}`} onClick={() => setVictoryType(v.value)}>
                   <span className="victory-icon">{v.icon}</span>
                   <span>{v.label}</span>
                 </button>
@@ -214,43 +199,23 @@ const GameSetup: React.FC<GameSetupProps> = ({ onStart }) => {
             <h2>DLC & Game Modes</h2>
             <div className="dlc-grid">
               <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={dlc.gatheringStorm}
-                  onChange={() => handleDlcToggle("gatheringStorm")}
-                />
+                <input type="checkbox" checked={dlc.gatheringStorm} onChange={() => handleDlcToggle("gatheringStorm")} />
                 <span>Gathering Storm</span>
               </label>
               <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={dlc.riseFall}
-                  onChange={() => handleDlcToggle("riseFall")}
-                />
+                <input type="checkbox" checked={dlc.riseFall} onChange={() => handleDlcToggle("riseFall")} />
                 <span>Rise and Fall</span>
               </label>
               <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={dlc.dramaticAges}
-                  onChange={() => handleDlcToggle("dramaticAges")}
-                />
+                <input type="checkbox" checked={dlc.dramaticAges} onChange={() => handleDlcToggle("dramaticAges")} />
                 <span>Dramatic Ages</span>
               </label>
               <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={dlc.heroes}
-                  onChange={() => handleDlcToggle("heroes")}
-                />
+                <input type="checkbox" checked={dlc.heroes} onChange={() => handleDlcToggle("heroes")} />
                 <span>Heroes & Legends</span>
               </label>
               <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={dlc.secretSocieties}
-                  onChange={() => handleDlcToggle("secretSocieties")}
-                />
+                <input type="checkbox" checked={dlc.secretSocieties} onChange={() => handleDlcToggle("secretSocieties")} />
                 <span>Secret Societies</span>
               </label>
             </div>

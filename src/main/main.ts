@@ -51,9 +51,7 @@ const writeJsonAtomically = (filePath: string, data: unknown) => {
   try {
     JSON.parse(data);
   } catch (parseError) {
-    throw new Error(
-      `Invalid JSON payload: ${parseError instanceof Error ? parseError.message : "malformed JSON"}`,
-    );
+    throw new Error(`Invalid JSON payload: ${parseError instanceof Error ? parseError.message : "malformed JSON"}`);
   }
 
   const dir = path.dirname(filePath);
@@ -159,11 +157,7 @@ ipcMain.handle("backup-save", async () => {
 
 ipcMain.handle("export-game", async (_event, data: string) => {
   try {
-    const defaultPath = path.join(
-      app.getPath("documents"),
-      "Civ6 Strategic Planner",
-      "civ6-planner-game.json",
-    );
+    const defaultPath = path.join(app.getPath("documents"), "Civ6 Strategic Planner", "civ6-planner-game.json");
 
     const result = await dialog.showSaveDialog({
       title: "Save Civ6 Planner File",

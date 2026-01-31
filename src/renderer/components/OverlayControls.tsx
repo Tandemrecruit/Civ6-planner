@@ -44,6 +44,15 @@ interface OverlayControlsProps {
    * Called with null to disable overlay.
    */
   onDistrictChange: (district: DistrictType | null) => void;
+
+  /**
+   * Whether to apply an adjacency-doubling policy multiplier for the selected district.
+   * (e.g., Natural Philosophy / Town Charters / Craftsmen / Naval Infrastructure / Scripture / Aesthetics)
+   */
+  policyEnabled: boolean;
+
+  /** Callback when the policy toggle changes. */
+  onPolicyEnabledChange: (enabled: boolean) => void;
 }
 
 /**
@@ -70,11 +79,18 @@ interface OverlayControlsProps {
  *   </>
  * );
  */
-const OverlayControls: React.FC<OverlayControlsProps> = ({
-  selectedDistrict,
-  onDistrictChange,
-}) => {
+const OverlayControls: React.FC<OverlayControlsProps> = ({ selectedDistrict, onDistrictChange, policyEnabled, onPolicyEnabledChange }) => {
   const isEnabled = selectedDistrict !== null;
+
+  const policyLabelByDistrict: Partial<Record<DistrictType, string>> = {
+    campus: "Natural Philosophy (Campus) — double adjacency",
+    holy_site: "Scripture (Holy Site) — double adjacency",
+    theater_square: "Aesthetics (Theater Square) — double adjacency",
+    commercial_hub: "Town Charters (Commercial Hub) — double adjacency",
+    industrial_zone: "Craftsmen (Industrial Zone) — double adjacency",
+    harbor: "Naval Infrastructure (Harbor) — double adjacency",
+  };
+  const policyLabel = (selectedDistrict && policyLabelByDistrict[selectedDistrict]) || "Double adjacency (policy)";
 
   const handleToggle = () => {
     if (isEnabled) {
@@ -100,9 +116,7 @@ const OverlayControls: React.FC<OverlayControlsProps> = ({
         >
           <span className="toggle-icon">📐</span>
           <span className="toggle-label">Adjacency</span>
-          <span className={`toggle-indicator ${isEnabled ? "on" : "off"}`}>
-            {isEnabled ? "ON" : "OFF"}
-          </span>
+          <span className={`toggle-indicator ${isEnabled ? "on" : "off"}`}>{isEnabled ? "ON" : "OFF"}</span>
         </button>
       </div>
 
@@ -110,17 +124,20 @@ const OverlayControls: React.FC<OverlayControlsProps> = ({
         <div className="overlay-body">
           <div className="district-selector">
             <label htmlFor="overlay-district">District:</label>
-            <select
-              id="overlay-district"
-              value={selectedDistrict || ""}
-              onChange={handleDistrictSelect}
-            >
+            <select id="overlay-district" value={selectedDistrict || ""} onChange={handleDistrictSelect}>
               {OVERLAY_DISTRICTS.map((district) => (
                 <option key={district} value={district}>
                   {getDistrictLabel(district)} {getDistrictDisplayName(district)}
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="overlay-policy">
+            <label className="overlay-policy-toggle">
+              <input type="checkbox" checked={policyEnabled} onChange={(e) => onPolicyEnabledChange(e.target.checked)} />
+              <span>{policyLabel}</span>
+            </label>
           </div>
 
           <div className="overlay-legend">
