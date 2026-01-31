@@ -16,7 +16,7 @@ export interface ElectronAPI {
   loadGame: () => Promise<{ success: boolean; data?: string | null; error?: string }>;
   backupSave: () => Promise<{ success: boolean; path?: string; error?: string }>;
   exportGame: (
-    data: string
+    data: string,
   ) => Promise<{ success: boolean; canceled?: boolean; path?: string; error?: string }>;
   importGame: () => Promise<{
     success: boolean;

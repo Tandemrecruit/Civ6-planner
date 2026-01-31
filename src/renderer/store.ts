@@ -368,10 +368,7 @@ const createEmptyState = (): Omit<GameState, "setup"> => ({
   civicQueue: [],
   policyLoadout: {
     government: "chiefdom",
-    slots: [
-      { slotType: "military" },
-      { slotType: "economic" },
-    ],
+    slots: [{ slotType: "military" }, { slotType: "economic" }],
   },
   gold: 0,
   faith: 0,
@@ -508,10 +505,7 @@ export const useGameStore = create<GameStore>((set) => ({
   // Cities
   addCity: (city) =>
     set((s) => ({
-      cities: [
-        ...s.cities,
-        { ...city, id: uuidv4(), buildQueue: [], plannedDistricts: [] },
-      ],
+      cities: [...s.cities, { ...city, id: uuidv4(), buildQueue: [], plannedDistricts: [] }],
       lastUpdated: new Date(),
     })),
 
@@ -529,7 +523,7 @@ export const useGameStore = create<GameStore>((set) => ({
               ...c,
               buildQueue: [...c.buildQueue, { ...item, id: uuidv4(), isLocked: false }],
             }
-          : c
+          : c,
       ),
       lastUpdated: new Date(),
     })),
@@ -537,9 +531,7 @@ export const useGameStore = create<GameStore>((set) => ({
   removeFromBuildQueue: (cityId, itemId) =>
     set((s) => ({
       cities: s.cities.map((c) =>
-        c.id === cityId
-          ? { ...c, buildQueue: c.buildQueue.filter((i) => i.id !== itemId) }
-          : c
+        c.id === cityId ? { ...c, buildQueue: c.buildQueue.filter((i) => i.id !== itemId) } : c,
       ),
       lastUpdated: new Date(),
     })),
@@ -629,8 +621,7 @@ export const useGameStore = create<GameStore>((set) => ({
     }),
 
   // Policies
-  updatePolicies: (loadout) =>
-    set({ policyLoadout: loadout, lastUpdated: new Date() }),
+  updatePolicies: (loadout) => set({ policyLoadout: loadout, lastUpdated: new Date() }),
 
   // AI Civs
   addAICiv: (civ) =>
@@ -647,9 +638,7 @@ export const useGameStore = create<GameStore>((set) => ({
 
   setThreatLevel: (civId, level) =>
     set((s) => ({
-      aiCivs: s.aiCivs.map((c) =>
-        c.id === civId ? { ...c, threatLevel: level } : c
-      ),
+      aiCivs: s.aiCivs.map((c) => (c.id === civId ? { ...c, threatLevel: level } : c)),
       lastUpdated: new Date(),
     })),
 
@@ -665,7 +654,7 @@ export const useGameStore = create<GameStore>((set) => ({
   dismissRecommendation: (recId) =>
     set((s) => ({
       recommendations: s.recommendations.map((r) =>
-        r.id === recId ? { ...r, dismissed: true } : r
+        r.id === recId ? { ...r, dismissed: true } : r,
       ),
     })),
 

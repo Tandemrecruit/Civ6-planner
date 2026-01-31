@@ -21,7 +21,7 @@ reviews:
     - State/Data Model: Zustand store, types in src/types/, persistence utilities
     - Electron/IPC: Main process, preload script, file I/O
     - Config/Build: Vite, Forge, TypeScript config changes
-    
+
     Flag any changes that affect the save file schema or serialization format.
   collapse_walkthrough: true
   changed_files_summary: true
@@ -39,6 +39,13 @@ reviews:
   path_filters:
     - "src/**"
     - "docs/**"
+    - ".github/workflows/**"
+    - ".github/dependabot.yml"
+    - ".husky/**"
+    - ".prettierrc.json"
+    - ".prettierignore"
+    - "vitest.config.ts"
+    - "commitlint.config.cjs"
     - "package.json"
     - "package-lock.json"
     - "tsconfig.json"
@@ -56,6 +63,22 @@ reviews:
 
   # Path-specific review instructions
   path_instructions:
+    - path: ".github/workflows/**"
+      instructions: |
+        CI/CD workflows. Focus on:
+        - Least-privilege permissions (contents/pull-requests/security-events)
+        - Secret usage (prefer GITHUB_TOKEN; avoid leaking env values)
+        - Windows build steps (Electron Forge)
+        - Artifact upload paths and retention
+        - Deterministic installs (npm ci) and caching
+
+    - path: ".husky/**"
+      instructions: |
+        Git hooks. Focus on:
+        - Cross-platform compatibility (POSIX sh; avoid bash-only features)
+        - Fast hooks (prefer lint-staged; avoid running full builds)
+        - Clear failure messages and consistent behavior with CI
+
     - path: "src/main/**"
       instructions: |
         Electron main process code. Focus on:

@@ -31,9 +31,7 @@ const createWindow = (): void => {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
-    );
+    mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
   }
 };
 
@@ -46,9 +44,7 @@ const getSaveFilePath = (): string => {
 const writeJsonAtomically = (filePath: string, data: unknown) => {
   // Ensure data is a string before any file operations
   if (typeof data !== "string") {
-    throw new Error(
-      `Invalid JSON payload: expected string, received ${typeof data}`
-    );
+    throw new Error(`Invalid JSON payload: expected string, received ${typeof data}`);
   }
 
   // Validate that the string is valid JSON before touching any files
@@ -56,7 +52,7 @@ const writeJsonAtomically = (filePath: string, data: unknown) => {
     JSON.parse(data);
   } catch (parseError) {
     throw new Error(
-      `Invalid JSON payload: ${parseError instanceof Error ? parseError.message : "malformed JSON"}`
+      `Invalid JSON payload: ${parseError instanceof Error ? parseError.message : "malformed JSON"}`,
     );
   }
 
@@ -131,11 +127,11 @@ ipcMain.handle("save-game", async (_event, data: string) => {
 
 ipcMain.handle("load-game", async () => {
   const filePath = getSaveFilePath();
-  
+
   if (!fs.existsSync(filePath)) {
     return { success: true, data: null };
   }
-  
+
   try {
     const json = fs.readFileSync(filePath, "utf-8");
     return { success: true, data: json };
@@ -150,7 +146,7 @@ ipcMain.handle("backup-save", async () => {
   if (!fs.existsSync(filePath)) {
     return { success: true };
   }
-  
+
   try {
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const backupPath = filePath.replace(".json", `-backup-${timestamp}.json`);
@@ -166,7 +162,7 @@ ipcMain.handle("export-game", async (_event, data: string) => {
     const defaultPath = path.join(
       app.getPath("documents"),
       "Civ6 Strategic Planner",
-      "civ6-planner-game.json"
+      "civ6-planner-game.json",
     );
 
     const result = await dialog.showSaveDialog({
