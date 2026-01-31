@@ -57,6 +57,7 @@ pnpm-debug.log*
 .settings/
 *.sublime-workspace
 *.sublime-project
+.cursor/
 
 # OS files
 .DS_Store
