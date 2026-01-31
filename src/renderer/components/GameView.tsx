@@ -157,8 +157,19 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
         return;
       }
 
-      const parsed = JSON.parse(result.data);
-      const state = deserialize(parsed);
+      const parsed: unknown = JSON.parse(result.data);
+
+      // Validate basic structure before deserializing
+      if (
+        typeof parsed !== "object" ||
+        parsed === null ||
+        typeof (parsed as Record<string, unknown>).schemaVersion !== "number"
+      ) {
+        showStatus("Load failed: invalid or incompatible save file", "error");
+        return;
+      }
+
+      const state = deserialize(parsed as Parameters<typeof deserialize>[0]);
       loadState(state);
       showStatus(`Loaded ${result.path}`, "success");
     } catch (error) {
