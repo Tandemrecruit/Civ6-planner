@@ -60,9 +60,10 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
   const [selectedCoord, setSelectedCoord] = useState<HexCoord | null>(null);
   const [showTurnDialog, setShowTurnDialog] = useState(false);
   const [newTurnInput, setNewTurnInput] = useState("");
-  const [status, setStatus] = useState<{ kind: "success" | "error" | "info"; message: string } | null>(
-    null
-  );
+  const [status, setStatus] = useState<{
+    kind: "success" | "error" | "info";
+    message: string;
+  } | null>(null);
   const [overlayDistrict, setOverlayDistrict] = useState<DistrictType | null>(null);
 
   // Ref for status timeout to enable cleanup on unmount
@@ -315,11 +316,7 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
         </div>
 
         {selectedCoord && (
-          <TileInspector
-            coord={selectedCoord}
-            tile={selectedTile}
-            onClose={handleCloseInspector}
-          />
+          <TileInspector coord={selectedCoord} tile={selectedTile} onClose={handleCloseInspector} />
         )}
       </div>
 

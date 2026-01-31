@@ -38,7 +38,7 @@ export const deserialize = (data: SerializedGameState): GameState => {
   // Handle schema migrations here as needed
   if (data.schemaVersion !== CURRENT_SCHEMA_VERSION) {
     console.warn(
-      `Schema version mismatch: file is v${data.schemaVersion}, current is v${CURRENT_SCHEMA_VERSION}`
+      `Schema version mismatch: file is v${data.schemaVersion}, current is v${CURRENT_SCHEMA_VERSION}`,
     );
     // Add migration logic here when schema changes
   }

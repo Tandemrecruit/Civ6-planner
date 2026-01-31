@@ -63,14 +63,7 @@ export const coordKey = (c: HexCoord): string => `${c.q},${c.r}`;
  * - `coast` - Shallow water, supports harbors and fishing
  * - `ocean` - Deep water, limited use without specific techs
  */
-export type Terrain =
-  | "grassland"
-  | "plains"
-  | "desert"
-  | "tundra"
-  | "snow"
-  | "coast"
-  | "ocean";
+export type Terrain = "grassland" | "plains" | "desert" | "tundra" | "snow" | "coast" | "ocean";
 
 /**
  * Terrain modifiers that affect yields, movement, and buildability.
@@ -163,21 +156,21 @@ export type RiverEdges = boolean[];
  * different yields. Some improvements unlock with specific technologies.
  */
 export type Improvement =
-  | "farm"              // Food improvement, requires Agriculture
-  | "mine"              // Production improvement, requires Mining
-  | "quarry"            // Stone/marble improvement, requires Mining
-  | "plantation"        // Luxury resource improvement, requires Irrigation
-  | "camp"              // Fur/deer/ivory improvement, requires Animal Husbandry
-  | "pasture"           // Horse/cattle/sheep improvement, requires Animal Husbandry
-  | "fishing_boats"     // Water resource improvement, requires Celestial Navigation
-  | "lumber_mill"       // Woods improvement, requires Construction
-  | "oil_well"          // Oil improvement, requires Steel
+  | "farm" // Food improvement, requires Agriculture
+  | "mine" // Production improvement, requires Mining
+  | "quarry" // Stone/marble improvement, requires Mining
+  | "plantation" // Luxury resource improvement, requires Irrigation
+  | "camp" // Fur/deer/ivory improvement, requires Animal Husbandry
+  | "pasture" // Horse/cattle/sheep improvement, requires Animal Husbandry
+  | "fishing_boats" // Water resource improvement, requires Celestial Navigation
+  | "lumber_mill" // Woods improvement, requires Construction
+  | "oil_well" // Oil improvement, requires Steel
   | "offshore_platform" // Ocean oil improvement, requires Plastics
-  | "seaside_resort"    // Tourism improvement, requires Radio
-  | "ski_resort"        // Mountain tourism, requires Professional Sports
-  | "fort"              // Defensive improvement, requires Siege Tactics
-  | "airstrip"          // Air unit base, requires Flight
-  | "missile_silo";     // Nuclear capability, requires Rocketry
+  | "seaside_resort" // Tourism improvement, requires Radio
+  | "ski_resort" // Mountain tourism, requires Professional Sports
+  | "fort" // Defensive improvement, requires Siege Tactics
+  | "airstrip" // Air unit base, requires Flight
+  | "missile_silo"; // Nuclear capability, requires Rocketry
 
 /**
  * District types that can be placed on tiles.
@@ -191,25 +184,25 @@ export type Improvement =
  * Infrastructure districts (aqueduct, dam, canal) have placement restrictions.
  */
 export type DistrictType =
-  | "city_center"          // Automatic, the city's founding tile
-  | "campus"               // Science district, unlocked by Writing
-  | "holy_site"            // Faith district, unlocked by Astrology
-  | "theater_square"       // Culture district, unlocked by Drama and Poetry
-  | "commercial_hub"       // Gold district, unlocked by Currency
-  | "harbor"               // Naval/trade district, unlocked by Celestial Navigation
-  | "industrial_zone"      // Production district, unlocked by Apprenticeship
-  | "encampment"           // Military district, unlocked by Bronze Working
+  | "city_center" // Automatic, the city's founding tile
+  | "campus" // Science district, unlocked by Writing
+  | "holy_site" // Faith district, unlocked by Astrology
+  | "theater_square" // Culture district, unlocked by Drama and Poetry
+  | "commercial_hub" // Gold district, unlocked by Currency
+  | "harbor" // Naval/trade district, unlocked by Celestial Navigation
+  | "industrial_zone" // Production district, unlocked by Apprenticeship
+  | "encampment" // Military district, unlocked by Bronze Working
   | "entertainment_complex" // Amenity district, unlocked by Games and Recreation
-  | "water_park"           // Coastal amenity district, unlocked by Games and Recreation
-  | "aerodrome"            // Air unit district, unlocked by Flight
-  | "spaceport"            // Space race district, unlocked by Rocketry
-  | "government_plaza"     // Unique government district (one per civ)
-  | "diplomatic_quarter"   // Diplomacy district, unlocked by Medieval Faires
-  | "neighborhood"         // Housing district, unlocked by Urbanization
-  | "aqueduct"             // Water infrastructure, unlocked by Engineering
-  | "dam"                  // Flood control, unlocked by Buttress
-  | "canal"                // Water passage, unlocked by Steam Power
-  | "preserve";            // Nature conservation, unlocked by Mysticism
+  | "water_park" // Coastal amenity district, unlocked by Games and Recreation
+  | "aerodrome" // Air unit district, unlocked by Flight
+  | "spaceport" // Space race district, unlocked by Rocketry
+  | "government_plaza" // Unique government district (one per civ)
+  | "diplomatic_quarter" // Diplomacy district, unlocked by Medieval Faires
+  | "neighborhood" // Housing district, unlocked by Urbanization
+  | "aqueduct" // Water infrastructure, unlocked by Engineering
+  | "dam" // Flood control, unlocked by Buttress
+  | "canal" // Water passage, unlocked by Steam Power
+  | "preserve"; // Nature conservation, unlocked by Mysticism
 
 // ============================================================================
 // TILE STATE & TIMELINE
@@ -794,13 +787,13 @@ export type ConfidenceLevel = "high" | "medium" | "low";
  * Categories of recommendations the engine can provide.
  */
 export type RecommendationType =
-  | "tile_plan"       // Suggested tile use change
-  | "build_queue"     // Build order suggestion
-  | "research_queue"  // Tech queue reordering
-  | "civic_queue"     // Civic queue reordering
-  | "policy_swap"     // Policy change suggestion
-  | "conflict"        // Conflicting plans detected
-  | "threat";         // Military threat warning
+  | "tile_plan" // Suggested tile use change
+  | "build_queue" // Build order suggestion
+  | "research_queue" // Tech queue reordering
+  | "civic_queue" // Civic queue reordering
+  | "policy_swap" // Policy change suggestion
+  | "conflict" // Conflicting plans detected
+  | "threat"; // Military threat warning
 
 /**
  * A suggestion from the recommendations engine.

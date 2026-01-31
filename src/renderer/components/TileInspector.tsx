@@ -53,15 +53,7 @@ interface TileInspectorProps {
 // ============================================================================
 
 /** Available terrain types for the dropdown. */
-const TERRAINS: Terrain[] = [
-  "grassland",
-  "plains",
-  "desert",
-  "tundra",
-  "snow",
-  "coast",
-  "ocean",
-];
+const TERRAINS: Terrain[] = ["grassland", "plains", "desert", "tundra", "snow", "coast", "ocean"];
 
 const MODIFIERS: (TerrainModifier | "none")[] = ["none", "hills", "mountain"];
 
@@ -122,18 +114,51 @@ const RESOURCE_TYPES: ResourceType[] = ["luxury", "strategic", "bonus"];
 // Common resources by type
 const COMMON_RESOURCES: Record<ResourceType, string[]> = {
   luxury: [
-    "Amber", "Citrus", "Cocoa", "Coffee", "Cosmetics", "Cotton", "Diamonds",
-    "Dyes", "Furs", "Gypsum", "Incense", "Ivory", "Jade", "Jeans", "Marble",
-    "Mercury", "Olives", "Pearls", "Perfume", "Salt", "Silk", "Silver",
-    "Spices", "Sugar", "Tea", "Tobacco", "Toys", "Truffles", "Turtles",
-    "Whales", "Wine"
+    "Amber",
+    "Citrus",
+    "Cocoa",
+    "Coffee",
+    "Cosmetics",
+    "Cotton",
+    "Diamonds",
+    "Dyes",
+    "Furs",
+    "Gypsum",
+    "Incense",
+    "Ivory",
+    "Jade",
+    "Jeans",
+    "Marble",
+    "Mercury",
+    "Olives",
+    "Pearls",
+    "Perfume",
+    "Salt",
+    "Silk",
+    "Silver",
+    "Spices",
+    "Sugar",
+    "Tea",
+    "Tobacco",
+    "Toys",
+    "Truffles",
+    "Turtles",
+    "Whales",
+    "Wine",
   ],
-  strategic: [
-    "Horses", "Iron", "Niter", "Coal", "Oil", "Aluminum", "Uranium"
-  ],
+  strategic: ["Horses", "Iron", "Niter", "Coal", "Oil", "Aluminum", "Uranium"],
   bonus: [
-    "Bananas", "Cattle", "Copper", "Crabs", "Deer", "Fish", "Maize",
-    "Rice", "Sheep", "Stone", "Wheat"
+    "Bananas",
+    "Cattle",
+    "Copper",
+    "Crabs",
+    "Deer",
+    "Fish",
+    "Maize",
+    "Rice",
+    "Sheep",
+    "Stone",
+    "Wheat",
   ],
 };
 
@@ -197,32 +222,25 @@ const RIVER_EDGE_LABELS = ["E", "SE", "SW", "W", "NW", "NE"];
  * )}
  */
 const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) => {
-  const { addTile, updateTile, lockTile, addTilePlan, removeTilePlan, tiles, setup } = useGameStore();
+  const { addTile, updateTile, lockTile, addTilePlan, removeTilePlan, tiles, setup } =
+    useGameStore();
 
   // Form state for tile properties
   const [terrain, setTerrain] = useState<Terrain>(tile?.terrain || "grassland");
-  const [modifier, setModifier] = useState<TerrainModifier | "none">(
-    tile?.modifier || "none"
-  );
+  const [modifier, setModifier] = useState<TerrainModifier | "none">(tile?.modifier || "none");
   const [features, setFeatures] = useState<Feature[]>(tile?.features || []);
   const [district, setDistrict] = useState<DistrictType | "">(tile?.district || "");
-  const [improvement, setImprovement] = useState<Improvement | "">(
-    tile?.improvement || ""
-  );
+  const [improvement, setImprovement] = useState<Improvement | "">(tile?.improvement || "");
 
   // Resource state
   const [hasResource, setHasResource] = useState(!!tile?.resource);
-  const [resourceType, setResourceType] = useState<ResourceType>(
-    tile?.resource?.type || "bonus"
-  );
+  const [resourceType, setResourceType] = useState<ResourceType>(tile?.resource?.type || "bonus");
   const [resourceName, setResourceName] = useState(tile?.resource?.name || "");
-  const [resourceRevealed, setResourceRevealed] = useState(
-    tile?.resource?.revealed ?? true
-  );
+  const [resourceRevealed, setResourceRevealed] = useState(tile?.resource?.revealed ?? true);
 
   // River edges state
   const [riverEdges, setRiverEdges] = useState<boolean[]>(
-    tile?.riverEdges || [false, false, false, false, false, false]
+    tile?.riverEdges || [false, false, false, false, false, false],
   );
 
   // Add plan form state
@@ -266,7 +284,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
 
   const handleFeatureToggle = (feature: Feature) => {
     setFeatures((prev) =>
-      prev.includes(feature) ? prev.filter((f) => f !== feature) : [...prev, feature]
+      prev.includes(feature) ? prev.filter((f) => f !== feature) : [...prev, feature],
     );
   };
 
@@ -279,9 +297,10 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
   };
 
   const handleSave = () => {
-    const resource = hasResource && resourceName
-      ? { name: resourceName, type: resourceType, revealed: resourceRevealed }
-      : undefined;
+    const resource =
+      hasResource && resourceName
+        ? { name: resourceName, type: resourceType, revealed: resourceRevealed }
+        : undefined;
 
     if (isNewTile) {
       addTile({
@@ -340,7 +359,10 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
     let action: TilePlannedState["action"];
     switch (planActionType) {
       case "place_district":
-        action = { type: "place_district", district: (planActionValue || "campus") as DistrictType };
+        action = {
+          type: "place_district",
+          district: (planActionValue || "campus") as DistrictType,
+        };
         break;
       case "improve":
         action = { type: "improve", improvement: (planActionValue || "farm") as Improvement };
@@ -371,9 +393,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
   };
 
   const formatLabel = (str: string): string => {
-    return str
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase());
+    return str.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   };
 
   const formatTrigger = (trigger: StateTrigger): string => {
@@ -626,9 +646,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
                     <div className="plan-info">
                       <span className="plan-trigger">{formatTrigger(plan.trigger)}</span>
                       <span className="plan-action">{formatAction(plan.action)}</span>
-                      {plan.rationale && (
-                        <span className="plan-rationale">{plan.rationale}</span>
-                      )}
+                      {plan.rationale && <span className="plan-rationale">{plan.rationale}</span>}
                     </div>
                     <button
                       className="remove-plan-btn"
@@ -659,7 +677,9 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
                   {(planTriggerType === "tech" || planTriggerType === "civic") && (
                     <input
                       type="text"
-                      placeholder={planTriggerType === "tech" ? "e.g., apprenticeship" : "e.g., feudalism"}
+                      placeholder={
+                        planTriggerType === "tech" ? "e.g., apprenticeship" : "e.g., feudalism"
+                      }
                       value={planTriggerValue}
                       onChange={(e) => setPlanTriggerValue(e.target.value)}
                       className="trigger-value-input"
@@ -744,10 +764,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
                 </div>
 
                 <div className="plan-form-actions">
-                  <button
-                    className="cancel-plan-btn"
-                    onClick={() => setShowAddPlan(false)}
-                  >
+                  <button className="cancel-plan-btn" onClick={() => setShowAddPlan(false)}>
                     Cancel
                   </button>
                   <button
@@ -772,12 +789,7 @@ const TileInspector: React.FC<TileInspectorProps> = ({ coord, tile, onClose }) =
 
         {/* Adjacency Bonuses */}
         <hr />
-        <AdjacencyPanel
-          coord={coord}
-          tiles={tiles}
-          tile={tile}
-          playerCiv={setup.playerCiv}
-        />
+        <AdjacencyPanel coord={coord} tiles={tiles} tile={tile} playerCiv={setup.playerCiv} />
       </div>
 
       <div className="inspector-footer">
