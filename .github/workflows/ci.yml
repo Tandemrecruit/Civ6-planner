@@ -44,6 +44,14 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - run: npm run coverage
+      - name: Upload coverage report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-coverage
+          path: coverage/**
+          if-no-files-found: error
+          retention-days: 7
       - run: npm run package
       - name: Upload packaged build artifact
         uses: actions/upload-artifact@v4
