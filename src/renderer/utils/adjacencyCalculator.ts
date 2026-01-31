@@ -732,7 +732,7 @@ export const calculateAdjacency = (
   }
 
   // Add standard district adjacency bonus (except for harbor which has special rules)
-  if (district !== "harbor" && STANDARD_DISTRICTS.includes(district)) {
+  if (STANDARD_DISTRICTS.includes(district)) {
     const districtSource = calculateDistrictBonus(neighbors, districtBonusMultiplier);
     if (districtSource) sources.push(districtSource);
   }

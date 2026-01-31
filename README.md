@@ -24,7 +24,7 @@ A desktop planning tool for Civilization 6 that helps optimize tile usage, build
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 20.19+ 
 - npm or yarn
 
 ### Installation
@@ -56,7 +56,7 @@ npm run make
 - **React 18**: Modern component-based UI framework with hooks
 - **TypeScript 5.3**: Type-safe development with full IDE support
 - **Zustand 4.4**: Lightweight state management with minimal boilerplate
-- **Vite 5**: Fast development and build tooling via Electron Forge plugin
+- **Vite 7**: Fast development and build tooling via Electron Forge plugin
 - **SVG-based Rendering**: Custom hex grid implementation for responsive, zoomable maps
 
 ## Usage

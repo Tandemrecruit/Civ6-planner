@@ -16,7 +16,7 @@ Thank you for your interest in contributing to the Civ 6 Strategic Planner! This
 
 ### Prerequisites
 
-- **Node.js 18+**: Download from [nodejs.org](https://nodejs.org/)
+- **Node.js 20.19+**: Download from [nodejs.org](https://nodejs.org/)
 - **npm** (comes with Node.js) or **yarn**
 - **Git**: For version control
 - A code editor (we recommend VS Code with the ESLint and Prettier extensions)
