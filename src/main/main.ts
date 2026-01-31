@@ -43,7 +43,23 @@ const getSaveFilePath = (): string => {
   return path.join(userDataPath, "game-state.json");
 };
 
-const writeJsonAtomically = (filePath: string, data: string) => {
+const writeJsonAtomically = (filePath: string, data: unknown) => {
+  // Ensure data is a string before any file operations
+  if (typeof data !== "string") {
+    throw new Error(
+      `Invalid JSON payload: expected string, received ${typeof data}`
+    );
+  }
+
+  // Validate that the string is valid JSON before touching any files
+  try {
+    JSON.parse(data);
+  } catch (parseError) {
+    throw new Error(
+      `Invalid JSON payload: ${parseError instanceof Error ? parseError.message : "malformed JSON"}`
+    );
+  }
+
   const dir = path.dirname(filePath);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
