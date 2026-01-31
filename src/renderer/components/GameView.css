@@ -25,6 +25,31 @@
   gap: 1rem;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 0.25rem;
+}
+
+.header-action-btn {
+  padding: 0.45rem 0.7rem;
+  font-size: 0.75rem;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.header-action-btn:hover {
+  border-color: var(--btn-border-hover);
+  background: var(--btn-bg-hover);
+  color: var(--text-primary);
+}
+
 .header-center {
   display: flex;
   justify-content: center;
@@ -130,6 +155,39 @@
 .new-game-btn:hover {
   border-color: var(--text-muted);
   color: var(--text-primary);
+}
+
+/* Status banner */
+.status-banner {
+  position: fixed;
+  left: 50%;
+  top: var(--header-height, 72px);
+  transform: translateX(-50%);
+  padding: 0.6rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid var(--status-banner-border);
+  background: var(--status-banner-bg);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  z-index: 1200;
+  max-width: min(900px, calc(100vw - 2rem));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.status-banner.success {
+  border-color: var(--status-banner-border-success);
+}
+
+.status-banner.error {
+  border-color: var(--status-banner-border-error);
+}
+
+.status-banner.info {
+  border-color: var(--status-banner-border-info);
 }
 
 /* Main content */

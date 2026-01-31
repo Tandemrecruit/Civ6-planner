@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { useGameStore } from "./store";
 import GameSetup from "./components/GameSetup";
 import GameView from "./components/GameView";
@@ -8,7 +9,7 @@ type AppView = "loading" | "setup" | "game";
 
 const App: React.FC = () => {
   const [view, setView] = useState<AppView>("loading");
-  const { setup, loadState } = useGameStore();
+  const { loadState } = useGameStore();
 
   // Load saved game on startup
   useEffect(() => {
@@ -33,32 +34,36 @@ const App: React.FC = () => {
   }, [loadState]);
 
   // Auto-save when state changes
-  const gameState = useGameStore();
+  // Use shallow selector to only re-render when persistable state changes
+  const persistableState = useGameStore(
+    useShallow((state) => ({
+      setup: state.setup,
+      currentTurn: state.currentTurn,
+      currentEra: state.currentEra,
+      tiles: state.tiles,
+      cities: state.cities,
+      completedTechs: state.completedTechs,
+      completedCivics: state.completedCivics,
+      currentTech: state.currentTech,
+      currentCivic: state.currentCivic,
+      techQueue: state.techQueue,
+      civicQueue: state.civicQueue,
+      policyLoadout: state.policyLoadout,
+      gold: state.gold,
+      faith: state.faith,
+      strategicResources: state.strategicResources,
+      aiCivs: state.aiCivs,
+      lastUpdated: state.lastUpdated,
+    }))
+  );
+
   useEffect(() => {
     if (view !== "game") return;
-    if (!gameState.setup.playerCiv) return; // Don't save empty state
+    if (!persistableState.setup.playerCiv) return; // Don't save empty state
 
     const saveTimeout = setTimeout(async () => {
       try {
-        const serialized = serialize({
-          setup: gameState.setup,
-          currentTurn: gameState.currentTurn,
-          currentEra: gameState.currentEra,
-          tiles: gameState.tiles,
-          cities: gameState.cities,
-          completedTechs: gameState.completedTechs,
-          completedCivics: gameState.completedCivics,
-          currentTech: gameState.currentTech,
-          currentCivic: gameState.currentCivic,
-          techQueue: gameState.techQueue,
-          civicQueue: gameState.civicQueue,
-          policyLoadout: gameState.policyLoadout,
-          gold: gameState.gold,
-          faith: gameState.faith,
-          strategicResources: gameState.strategicResources,
-          aiCivs: gameState.aiCivs,
-          lastUpdated: gameState.lastUpdated,
-        });
+        const serialized = serialize(persistableState);
         await window.electronAPI.saveGame(JSON.stringify(serialized, null, 2));
       } catch (error) {
         console.error("Auto-save failed:", error);
@@ -66,7 +71,7 @@ const App: React.FC = () => {
     }, 1000); // Debounce saves by 1 second
 
     return () => clearTimeout(saveTimeout);
-  }, [view, gameState]);
+  }, [view, persistableState]);
 
   const handleStartGame = () => {
     setView("game");

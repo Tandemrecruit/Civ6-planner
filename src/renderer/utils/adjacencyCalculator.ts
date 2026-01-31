@@ -384,8 +384,7 @@ const createSource = (
  * +1 from mountains, +1 from rainforest, +1 from reef, +1 from geothermal, +0.5 from districts
  */
 const calculateCampusAdjacency = (
-  neighbors: Tile[],
-  districtBonus: number
+  neighbors: Tile[]
 ): AdjacencySource[] => {
   const sources: AdjacencySource[] = [];
 
@@ -648,7 +647,7 @@ export const calculateAdjacency = (
   // Calculate district-specific bonuses
   switch (district) {
     case "campus":
-      sources.push(...calculateCampusAdjacency(neighbors, districtBonusMultiplier));
+      sources.push(...calculateCampusAdjacency(neighbors));
       // Maya Observatory: Farms and Plantations
       if (civModifiers.customDistricts.campus) {
         for (const extra of civModifiers.customDistricts.campus.extraSources) {
@@ -710,12 +709,14 @@ export const calculateAdjacency = (
       break;
     case "harbor":
       // Harbor has special adjacency rules - calculated separately
-      const harborSources = calculateHarborAdjacency(neighbors);
-      return {
-        district,
-        bonus: Math.floor(harborSources.reduce((sum, s) => sum + s.totalBonus, 0)),
-        breakdown: harborSources,
-      };
+      {
+        const harborSources = calculateHarborAdjacency(neighbors);
+        return {
+          district,
+          bonus: Math.floor(harborSources.reduce((sum, s) => sum + s.totalBonus, 0)),
+          breakdown: harborSources,
+        };
+      }
     case "encampment":
       sources.push(...calculateEncampmentAdjacency());
       break;
