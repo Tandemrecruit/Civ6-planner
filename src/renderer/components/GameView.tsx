@@ -7,9 +7,9 @@
  * @module renderer/components/GameView
  */
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useGameStore } from "../store";
-import { HexCoord, Tile, DistrictType, coordKey } from "../../types/model";
+import { HexCoord, DistrictType, coordKey, GameSetup } from "../../types/model";
 import HexGrid from "./HexGrid";
 import TileInspector from "./TileInspector";
 import OverlayControls from "./OverlayControls";
@@ -54,8 +54,8 @@ interface GameViewProps {
  * return <GameView onNewGame={() => setShowGame(false)} />;
  */
 const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
-  const { setup, currentTurn, cities, tiles, advanceTurn, loadState, newGame } = useGameStore();
   const gameState = useGameStore();
+  const { setup, currentTurn, cities, tiles, advanceTurn, loadState, newGame } = gameState;
 
   const [selectedCoord, setSelectedCoord] = useState<HexCoord | null>(null);
   const [showTurnDialog, setShowTurnDialog] = useState(false);
@@ -63,14 +63,30 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
   const [status, setStatus] = useState<{ kind: "success" | "error" | "info"; message: string } | null>(
     null
   );
+  const [overlayDistrict, setOverlayDistrict] = useState<DistrictType | null>(null);
+
+  // Ref for status timeout to enable cleanup on unmount
+  const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup timeout on unmount to prevent memory leak
+  useEffect(() => {
+    return () => {
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Get civ and leader names
   const civData = CIVS.find((c) => c.id === setup.playerCiv);
   const leaderData = civData?.leaders.find((l) => l.id === setup.playerLeader);
 
   const showStatus = (message: string, kind: "success" | "error" | "info" = "info") => {
+    if (statusTimeoutRef.current) {
+      clearTimeout(statusTimeoutRef.current);
+    }
     setStatus({ message, kind });
-    window.setTimeout(() => setStatus(null), 4000);
+    statusTimeoutRef.current = setTimeout(() => setStatus(null), 4000);
   };
 
   const getSerializedStateJson = (): string => {
@@ -174,10 +190,15 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
     }
   };
 
-  const handleNewGameClick = () => {
+  const handleNewGameClick = async () => {
     if (window.confirm("Start a new game? Current progress will be saved as a backup.")) {
-      void handleBackup();
-      const emptySetup: GameSetupType = {
+      try {
+        await handleBackup();
+      } catch (error) {
+        showStatus(`Backup failed: ${String(error)}`, "error");
+        return;
+      }
+      const emptySetup: GameSetup = {
         playerCiv: "",
         playerLeader: "",
         victoryType: "science",

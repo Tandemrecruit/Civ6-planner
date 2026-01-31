@@ -51,6 +51,11 @@ const writeJsonAtomically = (filePath: string, data: string) => {
 
   const tempPath = filePath + ".tmp";
   fs.writeFileSync(tempPath, data, "utf-8");
+
+  // On Windows, rename fails if destination exists - remove it first
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
   fs.renameSync(tempPath, filePath);
 };
 
@@ -142,6 +147,12 @@ ipcMain.handle("import-game", async () => {
 
     const filePath = result.filePaths[0];
     const json = fs.readFileSync(filePath, "utf-8");
+    // Validate JSON structure before sending to renderer
+    try {
+      JSON.parse(json);
+    } catch {
+      return { success: false, error: "Invalid JSON file" };
+    }
     return { success: true, canceled: false, path: filePath, data: json };
   } catch (error) {
     console.error("Failed to import:", error);

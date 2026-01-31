@@ -30,6 +30,9 @@
   --warning: #f59e0b;
   --danger: #ef4444;
 
+  /* Layout */
+  --header-height: 72px;
+
   /* Typography */
   --font-display: 'Cinzel', Georgia, serif;
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,

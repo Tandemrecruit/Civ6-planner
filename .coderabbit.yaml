@@ -52,6 +52,7 @@ reviews:
     - "!coverage/**"
     - "!**/*.map"
     - "!**/*.min.*"
+    - ".eslintrc.cjs"
 
   # Path-specific review instructions
   path_instructions:
@@ -105,13 +106,13 @@ reviews:
 
   # Tools configuration
   tools:
-    # Disable ESLint - no config file present in repo
+    # Enable ESLint
     eslint:
-      enabled: false
-
-    # Enable TypeScript/JS analysis via Biome
-    biome:
       enabled: true
+
+    # Disable TypeScript/JS analysis via Biome (avoid conflicts with ESLint)
+    biome:
+      enabled: false
 
     # Enable secret scanning
     gitleaks:
