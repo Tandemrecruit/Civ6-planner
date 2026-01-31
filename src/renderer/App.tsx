@@ -54,7 +54,7 @@ const App: React.FC = () => {
       strategicResources: state.strategicResources,
       aiCivs: state.aiCivs,
       lastUpdated: state.lastUpdated,
-    }))
+    })),
   );
 
   useEffect(() => {

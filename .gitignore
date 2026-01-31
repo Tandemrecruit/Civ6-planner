@@ -34,6 +34,8 @@ release/
 .env.development.local
 .env.test.local
 .env.production.local
+.npmrc
+!.npmrc.example
 
 # Logs
 logs/
@@ -46,6 +48,7 @@ pnpm-debug.log*
 # Editor and IDE
 .idea/
 .vscode/
+.vs/
 *.swp
 *.swo
 *~
@@ -54,6 +57,7 @@ pnpm-debug.log*
 .settings/
 *.sublime-workspace
 *.sublime-project
+.cursor/
 
 # OS files
 .DS_Store
@@ -61,14 +65,18 @@ pnpm-debug.log*
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+*.lnk
 
 # Testing
 coverage/
 .nyc_output/
+*.lcov
 
 # Cache
 .cache/
 .parcel-cache/
+.yarn/
+.pnpm-store/
 .eslintcache
 .stylelintcache
 *.tscache

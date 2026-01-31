@@ -70,7 +70,7 @@ export const HEX_VERT_SPACING = HEX_HEIGHT;
  */
 export const hexToPixel = (coord: HexCoord): { x: number; y: number } => {
   const x = HEX_SIZE * (3 / 2) * coord.q;
-  const y = HEX_SIZE * (Math.sqrt(3) / 2 * coord.q + Math.sqrt(3) * coord.r);
+  const y = HEX_SIZE * ((Math.sqrt(3) / 2) * coord.q + Math.sqrt(3) * coord.r);
   return { x, y };
 };
 
@@ -92,8 +92,8 @@ export const hexToPixel = (coord: HexCoord): { x: number; y: number } => {
  * };
  */
 export const pixelToHex = (x: number, y: number): HexCoord => {
-  const q = (2 / 3 * x) / HEX_SIZE;
-  const r = (-1 / 3 * x + Math.sqrt(3) / 3 * y) / HEX_SIZE;
+  const q = ((2 / 3) * x) / HEX_SIZE;
+  const r = ((-1 / 3) * x + (Math.sqrt(3) / 3) * y) / HEX_SIZE;
   return hexRound({ q, r });
 };
 
@@ -186,12 +186,12 @@ export const hexCorners = (center: { x: number; y: number }): string => {
  */
 export const hexNeighbors = (coord: HexCoord): HexCoord[] => {
   const directions: HexCoord[] = [
-    { q: 1, r: 0 },   // East
-    { q: 1, r: -1 },  // Northeast
-    { q: 0, r: -1 },  // Northwest
-    { q: -1, r: 0 },  // West
-    { q: -1, r: 1 },  // Southwest
-    { q: 0, r: 1 },   // Southeast
+    { q: 1, r: 0 }, // East
+    { q: 1, r: -1 }, // Northeast
+    { q: 0, r: -1 }, // Northwest
+    { q: -1, r: 0 }, // West
+    { q: -1, r: 1 }, // Southwest
+    { q: 0, r: 1 }, // Southeast
   ];
   return directions.map((d) => ({ q: coord.q + d.q, r: coord.r + d.r }));
 };
@@ -211,12 +211,7 @@ export const hexNeighbors = (coord: HexCoord): HexCoord[] => {
  * hexDistance({ q: 0, r: 0 }, { q: 3, r: 0 });  // Returns 3
  */
 export const hexDistance = (a: HexCoord, b: HexCoord): number => {
-  return (
-    (Math.abs(a.q - b.q) +
-      Math.abs(a.q + a.r - b.q - b.r) +
-      Math.abs(a.r - b.r)) /
-    2
-  );
+  return (Math.abs(a.q - b.q) + Math.abs(a.q + a.r - b.q - b.r) + Math.abs(a.r - b.r)) / 2;
 };
 
 /**
@@ -272,12 +267,12 @@ export const getTerrainColor = (terrain: string, modifier?: string): string => {
 
   const colors: Record<string, string> = {
     grassland: "#22c55e", // Bright green
-    plains: "#eab308",    // Golden yellow
-    desert: "#f59e0b",    // Orange-yellow (more distinct from plains)
-    tundra: "#6b7280",    // Gray
-    snow: "#e2e8f0",      // Light gray-white
-    coast: "#38bdf8",     // Light blue
-    ocean: "#0369a1",     // Dark blue
+    plains: "#eab308", // Golden yellow
+    desert: "#f59e0b", // Orange-yellow (more distinct from plains)
+    tundra: "#6b7280", // Gray
+    snow: "#e2e8f0", // Light gray-white
+    coast: "#38bdf8", // Light blue
+    ocean: "#0369a1", // Dark blue
   };
 
   return colors[terrain] || "#6b7280";
@@ -298,12 +293,12 @@ export const getTerrainColor = (terrain: string, modifier?: string): string => {
 export const getHillsPatternColor = (terrain: string): string => {
   const colors: Record<string, string> = {
     grassland: "#15803d", // Darker green
-    plains: "#a16207",    // Darker gold
-    desert: "#b45309",    // Darker orange
-    tundra: "#4b5563",    // Darker gray
-    snow: "#94a3b8",      // Medium gray
-    coast: "#0284c7",     // Darker blue
-    ocean: "#075985",     // Even darker blue
+    plains: "#a16207", // Darker gold
+    desert: "#b45309", // Darker orange
+    tundra: "#4b5563", // Darker gray
+    snow: "#94a3b8", // Medium gray
+    coast: "#0284c7", // Darker blue
+    ocean: "#075985", // Even darker blue
   };
   return colors[terrain] || "#374151";
 };
@@ -327,15 +322,15 @@ export const getHillsPatternColor = (terrain: string): string => {
  */
 export const getFeatureColor = (feature: string): string | null => {
   const colors: Record<string, string> = {
-    woods: "rgba(22, 101, 52, 0.55)",       // Forest green
-    rainforest: "rgba(5, 80, 35, 0.6)",     // Dark jungle green
-    marsh: "rgba(132, 204, 22, 0.45)",      // Yellow-green
+    woods: "rgba(22, 101, 52, 0.55)", // Forest green
+    rainforest: "rgba(5, 80, 35, 0.6)", // Dark jungle green
+    marsh: "rgba(132, 204, 22, 0.45)", // Yellow-green
     floodplains: "rgba(251, 191, 36, 0.35)", // Golden
-    reef: "rgba(6, 182, 212, 0.5)",         // Cyan
-    geothermal: "rgba(239, 68, 68, 0.5)",   // Red
+    reef: "rgba(6, 182, 212, 0.5)", // Cyan
+    geothermal: "rgba(239, 68, 68, 0.5)", // Red
     volcanic_soil: "rgba(120, 53, 15, 0.45)", // Brown
-    oasis: "rgba(34, 211, 238, 0.6)",       // Bright cyan
-    cliffs: "rgba(71, 85, 105, 0.5)",       // Slate
+    oasis: "rgba(34, 211, 238, 0.6)", // Bright cyan
+    cliffs: "rgba(71, 85, 105, 0.5)", // Slate
   };
   return colors[feature] || null;
 };
@@ -455,9 +450,9 @@ export const getImprovementLabel = (improvement: string): string => {
  */
 export const getResourceColor = (type: string): string => {
   const colors: Record<string, string> = {
-    luxury: "#a855f7",    // Purple
+    luxury: "#a855f7", // Purple
     strategic: "#ef4444", // Red
-    bonus: "#22c55e",     // Green
+    bonus: "#22c55e", // Green
   };
   return colors[type] || "#6b7280";
 };
@@ -470,10 +465,7 @@ export const getResourceColor = (type: string): string => {
  * Get the points for a river edge segment
  * Edge index: 0=E (30°), 1=NE (90°), 2=NW (150°), 3=W (210°), 4=SW (270°), 5=SE (330°)
  */
-export const getRiverEdgePoints = (
-  center: { x: number; y: number },
-  edgeIndex: number
-): string => {
+export const getRiverEdgePoints = (center: { x: number; y: number }, edgeIndex: number): string => {
   const startAngle = 60 * edgeIndex;
   const endAngle = 60 * ((edgeIndex + 1) % 6);
 

@@ -113,8 +113,16 @@ export const CIVS: CivData[] = [
     id: "france",
     name: "France",
     leaders: [
-      { id: "catherine_black", name: "Catherine de Medici (Black Queen)", ability: "Catherine's Flying Squadron" },
-      { id: "catherine_magnificence", name: "Catherine de Medici (Magnificence)", ability: "Magnificence of Court" },
+      {
+        id: "catherine_black",
+        name: "Catherine de Medici (Black Queen)",
+        ability: "Catherine's Flying Squadron",
+      },
+      {
+        id: "catherine_magnificence",
+        name: "Catherine de Medici (Magnificence)",
+        ability: "Magnificence of Court",
+      },
       { id: "eleanor_france", name: "Eleanor of Aquitaine", ability: "Court of Love" },
     ],
     uniqueAbility: "Grand Tour",

@@ -24,7 +24,7 @@ A desktop planning tool for Civilization 6 that helps optimize tile usage, build
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Installation
@@ -40,6 +40,28 @@ npm install
 npm start
 ```
 
+### Common Commands
+
+```bash
+# Lint TypeScript/TSX
+npm run lint
+
+# Typecheck
+npm run typecheck
+
+# Format all files
+npm run format
+
+# Check formatting (CI uses this)
+npm run format:check
+
+# Run unit tests (CI uses this)
+npm test
+
+# Run tests with coverage
+npm run coverage
+```
+
 ### Building for Distribution
 
 ```bash
@@ -49,6 +71,33 @@ npm run package
 # Create distributable installers
 npm run make
 ```
+
+## Contributing
+
+- **Target `development`** for all feature, fix, and chore PRs (not `main`).
+- **PR titles must use Conventional Commits** (we squash-merge feature PRs, and the PR title becomes the merge commit message).
+- See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, hooks, branching model, and workflow.
+
+## CI/CD
+
+### Pull Requests
+
+CI runs on PRs targeting **`development`** (normal workflow) and **`main`** (release PRs and hotfixes):
+
+- Formatting check (`npm run format:check`)
+- Lint (`npm run lint`)
+- Typecheck (`npm run typecheck`)
+- Unit tests (`npm test`)
+- Packaging smoke build (`npm run package`)
+
+It also uploads a **Windows packaged build artifact** from `out/**` so reviewers can download and test.
+
+### Releases (Windows)
+
+Releases are automated with **release-please** and are cut from `main`:
+
+- Merges to `main` (typically from release PRs originating in `development`) keep a release PR up-to-date (version bump + changelog)
+- Merging the release PR creates a tag + GitHub Release and uploads Windows installer artifacts from `out/make/**`
 
 ## Tech Stack
 
@@ -113,7 +162,7 @@ For detailed architecture information, see [docs/ARCHITECTURE.md](docs/ARCHITECT
 - [ ] Build queue management
 - [ ] Research/civic queue with Eureka tracking
 - [ ] Policy swap recommendations
-- [ ] District adjacency calculator
+- [x] District adjacency calculator
 - [ ] Conflict detection for tile plans
 
 ## License

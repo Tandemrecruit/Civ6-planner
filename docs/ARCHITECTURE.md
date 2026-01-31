@@ -18,6 +18,7 @@ Located in `src/main/main.ts`, the main process handles:
 - **Application Lifecycle**: Manages app startup, shutdown, and platform-specific behaviors
 
 Key responsibilities:
+
 - Creating the application window with appropriate security settings
 - Exposing a secure API via the preload script
 - Persisting game state to JSON files
@@ -33,13 +34,19 @@ Located in `src/main/preload.ts`, the preload script:
 - Prevents direct access to Node.js APIs from the renderer
 
 Exposed API:
+
 ```typescript
 window.electronAPI = {
-  saveGame: (data: SerializedGameState) => Promise<void>
-  loadGame: () => Promise<SerializedGameState | null>
-  backupSave: () => Promise<void>
+  saveGame: (data: string) => Promise<{ success: boolean; path?: string; error?: string }>
+  loadGame: () => Promise<{ success: boolean; data?: string | null; error?: string }>
+  backupSave: () => Promise<{ success: boolean; path?: string; error?: string }>
+  exportGame: (data: string) => Promise<{ success: boolean; canceled?: boolean; path?: string; error?: string }>
+  importGame: () => Promise<{ success: boolean; canceled?: boolean; path?: string; data?: string; error?: string }>
+  openSaveLocation: () => Promise<{ success: boolean; path?: string; error?: string }>
 }
 ```
+
+All IPC methods return structured envelopes with `success` boolean and optional `error` string for consistent error handling. The `data` parameter is a serialized JSON string (serialization happens in the renderer before IPC).
 
 ### Renderer Process
 
@@ -174,13 +181,15 @@ All actions are immutable operations that return new state objects, triggering e
 
 **Decision**: Use axial coordinates (q, r) for hex positioning.
 
-**Rationale**: 
+**Rationale**:
+
 - Simpler math than offset coordinates
 - Only 2 values instead of 3 (cube coordinates)
 - Direct mapping to pixel coordinates with simple formulas
 - Standard approach in hex grid libraries
 
 **Implementation**: `src/renderer/utils/hexUtils.ts` contains conversion functions:
+
 - `hexToPixel(coord)`: Convert hex coords to SVG pixel position
 - `pixelToHex(x, y)`: Convert mouse position to hex coords
 - `hexCorners(center)`: Generate SVG polygon points for hex shape
@@ -190,6 +199,7 @@ All actions are immutable operations that return new state objects, triggering e
 **Decision**: Use `Map<string, Tile>` with coordinate keys instead of nested arrays.
 
 **Rationale**:
+
 - Sparse map support (not all hexes need to exist)
 - O(1) lookup by coordinate
 - Easy to add/remove individual tiles
@@ -202,12 +212,14 @@ All actions are immutable operations that return new state objects, triggering e
 **Decision**: Store multiple planned states per tile with flexible trigger conditions.
 
 **Rationale**:
+
 - Players often plan multiple steps ahead ("place district after Writing, then build library after Philosophy")
 - Tech/civic triggers automatically align plans with research progress
 - Turn-based triggers help with timing critical decisions
 - Manual triggers support exploratory/uncertain plans
 
 **Implementation**: Each `Tile` has a `plannedStates: TilePlannedState[]` array where each entry has:
+
 ```typescript
 {
   id: string
@@ -222,16 +234,19 @@ All actions are immutable operations that return new state objects, triggering e
 **Decision**: All Zustand actions create new objects/arrays instead of mutating existing state.
 
 **Rationale**:
+
 - Predictable state changes
 - Enables React's efficient reconciliation
 - Easier debugging (can log/compare state snapshots)
 - Matches React best practices
 
 **Pattern**: Use spread operators and array methods:
+
 ```typescript
-addCity: (city) => set((state) => ({
-  cities: [...state.cities, { ...city, id: uuidv4() }]
-}))
+addCity: (city) =>
+  set((state) => ({
+    cities: [...state.cities, { ...city, id: uuidv4() }],
+  }));
 ```
 
 ### SVG-Based Rendering
@@ -239,6 +254,7 @@ addCity: (city) => set((state) => ({
 **Decision**: Use raw SVG for the hex grid instead of Canvas or a library like PixiJS.
 
 **Rationale**:
+
 - No external dependencies for rendering
 - SVG scales perfectly with zoom
 - Built-in event handling per element
@@ -252,12 +268,14 @@ addCity: (city) => set((state) => ({
 **Decision**: Comprehensive TypeScript types defined in `src/types/model.ts`.
 
 **Rationale**:
+
 - Catch errors at compile time
 - Excellent IDE autocomplete
 - Self-documenting code
 - Easier refactoring
 
 **Approach**: Define all domain types explicitly:
+
 - Use `type` for unions (e.g., `type Terrain = "grassland" | "plains" | ...`)
 - Use `interface` for objects
 - Use `enum` sparingly (string unions preferred for JSON serialization)
@@ -267,6 +285,7 @@ addCity: (city) => set((state) => ({
 **Decision**: Include `schemaVersion` field in serialized data.
 
 **Rationale**:
+
 - Future-proof for data model changes
 - Can implement migration logic when schema changes
 - Helps diagnose compatibility issues
@@ -304,22 +323,36 @@ The architecture has clear extension points for adding features:
 
 ## Development Workflow
 
-1. **Adding Features**: 
-   - Define types in `src/types/model.ts`
-   - Add store actions in `src/renderer/store.ts`
-   - Implement UI in `src/renderer/components/`
-   - Update persistence if schema changes
+### Branching Model
 
-2. **Debugging**:
-   - React DevTools for component inspection
-   - Zustand DevTools for state debugging
-   - Electron DevTools for IPC monitoring
+This repo uses a 2-branch flow:
 
-3. **Testing Strategy** (to be implemented):
-   - Unit tests for hex math utilities
-   - Unit tests for serialization/deserialization
-   - Component tests for React components
-   - E2E tests for critical user flows
+- **`development`**: Default integration branch where all feature work lands first.
+- **`main`**: Production/release branch; only receives merges from `development` (release PRs) or hotfix branches.
+
+Feature branches (e.g., `feature/*`, `fix/*`) are created from `development` and merged back via squash-merge. When ready to release, `development` is merged into `main` with a merge commit so `release-please` can generate an accurate changelog.
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full branching and PR workflow.
+
+### Adding Features
+
+1. Define types in `src/types/model.ts`
+2. Add store actions in `src/renderer/store.ts`
+3. Implement UI in `src/renderer/components/`
+4. Update persistence if schema changes
+
+### Debugging
+
+- React DevTools for component inspection
+- Zustand DevTools for state debugging
+- Electron DevTools for IPC monitoring
+
+### Testing Strategy (to be implemented)
+
+- Unit tests for hex math utilities
+- Unit tests for serialization/deserialization
+- Component tests for React components
+- E2E tests for critical user flows
 
 ## Additional Documentation
 

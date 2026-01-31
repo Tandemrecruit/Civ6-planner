@@ -127,8 +127,7 @@ const OverlayControls: React.FC<OverlayControlsProps> = ({
             <span className="legend-label">Bonus:</span>
             <div className="legend-items">
               <span className="legend-item" style={{ color: "#6b7280" }}>
-                <span className="legend-dot" style={{ background: "#6b7280" }} />
-                0
+                <span className="legend-dot" style={{ background: "#6b7280" }} />0
               </span>
               <span className="legend-item" style={{ color: "#eab308" }}>
                 <span className="legend-dot" style={{ background: "#eab308" }} />
