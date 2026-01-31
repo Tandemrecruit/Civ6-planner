@@ -755,7 +755,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
 
   // Render grid lines for empty area (helps with orientation)
   const renderGridGuide = () => {
-    const guides: JSX.Element[] = [];
+    const guides: Array<React.JSX.Element> = [];
     const range = 10; // Show guides for a 20x20 area around origin
 
     for (let q = -range; q <= range; q++) {
