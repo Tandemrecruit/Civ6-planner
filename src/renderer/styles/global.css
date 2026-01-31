@@ -18,13 +18,13 @@
   --border-color: #334155;
 
   /* Civ6 Thematic Colors */
-  --gold-accent: #C6A664;
-  --gold-hover: #D4B87A;
-  --gold-muted: #8B7355;
+  --gold-accent: #c6a664;
+  --gold-hover: #d4b87a;
+  --gold-muted: #8b7355;
 
   /* Primary accent - now gold themed */
-  --accent-color: #C6A664;
-  --accent-hover: #D4B87A;
+  --accent-color: #c6a664;
+  --accent-hover: #d4b87a;
 
   --success: #22c55e;
   --warning: #f59e0b;
@@ -47,9 +47,10 @@
   --header-height: 72px;
 
   /* Typography */
-  --font-display: 'Cinzel', Georgia, serif;
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  --font-display: "Cinzel", Georgia, serif;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+    "Helvetica Neue", sans-serif;
   --font-mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
 }
 

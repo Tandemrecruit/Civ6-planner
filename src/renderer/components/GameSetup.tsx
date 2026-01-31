@@ -82,10 +82,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ onStart }) => {
     secretSocieties: false,
   });
 
-  const selectedCivData = useMemo(
-    () => CIVS.find((c) => c.id === selectedCiv),
-    [selectedCiv]
-  );
+  const selectedCivData = useMemo(() => CIVS.find((c) => c.id === selectedCiv), [selectedCiv]);
 
   const handleCivChange = (civId: string) => {
     setSelectedCiv(civId);
@@ -260,11 +257,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ onStart }) => {
           </section>
         </div>
 
-        <button
-          className="start-btn"
-          onClick={handleStart}
-          disabled={!canStart}
-        >
+        <button className="start-btn" onClick={handleStart} disabled={!canStart}>
           Start Planning
         </button>
       </div>

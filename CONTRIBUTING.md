@@ -24,30 +24,48 @@ Thank you for your interest in contributing to the Civ 6 Strategic Planner! This
 ### Getting Started
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/your-username/civ6-planner.git
    cd civ6-planner
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Start the development server**
+
    ```bash
    npm start
    ```
+
    This launches the Electron app with hot-reload enabled. The app will automatically refresh when you make changes to the renderer code.
 
 4. **Run the linter**
+
    ```bash
    npm run lint
    ```
 
 5. **Run the typecheck**
+
    ```bash
    npm run typecheck
+   ```
+
+6. **Check formatting**
+
+   ```bash
+   npm run format:check
+   ```
+
+7. **Run tests**
+
+   ```bash
+   npm test
    ```
 
 ### Building for Production
@@ -93,47 +111,57 @@ src/
 - **Use strict TypeScript**: All code should be properly typed. Avoid `any` unless absolutely necessary.
 - **Prefer interfaces over type aliases** for object shapes, use `type` for unions and primitives.
 - **Use string literal unions** instead of enums for better JSON serialization:
+
   ```typescript
   // Preferred
   type Terrain = "grassland" | "plains" | "desert";
-  
+
   // Avoid
-  enum Terrain { Grassland, Plains, Desert }
+  enum Terrain {
+    Grassland,
+    Plains,
+    Desert,
+  }
   ```
+
 - **Export types explicitly**: Group related types together with clear section comments.
 
 ### React Components
 
 - **Use functional components** with hooks (no class components).
 - **Props interfaces**: Define a `Props` interface for each component:
+
   ```typescript
   interface MyComponentProps {
     value: string;
     onChange: (value: string) => void;
   }
-  
+
   const MyComponent: React.FC<MyComponentProps> = ({ value, onChange }) => {
     // ...
   };
   ```
+
 - **Use `useState` and `useEffect`** appropriately. Memoize callbacks with `useCallback` when passed to child components.
 - **Keep components focused**: If a component exceeds ~200 lines, consider splitting it.
 
 ### State Management (Zustand)
 
 - **Immutable updates**: Always return new objects/arrays, never mutate state directly:
+
   ```typescript
   // Correct
   set((state) => ({
-    items: [...state.items, newItem]
+    items: [...state.items, newItem],
   }));
-  
+
   // Wrong
   set((state) => {
-    state.items.push(newItem);  // Don't mutate!
+    state.items.push(newItem); // Don't mutate!
     return state;
   });
   ```
+
 - **Action naming**: Use verb prefixes that describe the action: `addTile`, `updateCity`, `removeTilePlan`.
 
 ### CSS
@@ -151,11 +179,29 @@ src/
 
 ### Branching Strategy
 
-- `main`: Production-ready code
-- `feature/*`: New features (e.g., `feature/build-queue-ui`)
-- `fix/*`: Bug fixes (e.g., `fix/tile-selection-bug`)
-- `chore/*`: Maintenance tasks (e.g., `chore/update-dependencies`)
-- `docs/*`: Documentation updates (e.g., `docs/api-documentation`)
+We use a 2-branch flow:
+
+- **`main`**: Production/release branch. Only receives merges from `development` (release PRs) or hotfix branches.
+- **`development`**: Default integration branch. All feature work is merged here first.
+- `feature/*`: New features branched from `development` (e.g., `feature/build-queue-ui`)
+- `fix/*`: Bug fixes branched from `development` (e.g., `fix/tile-selection-bug`)
+- `chore/*`: Maintenance tasks branched from `development` (e.g., `chore/update-dependencies`)
+- `docs/*`: Documentation updates branched from `development` (e.g., `docs/api-documentation`)
+- `hotfix/*`: Urgent production fixes branched from `main` (e.g., `hotfix/critical-save-bug`)
+
+```mermaid
+flowchart LR
+  dev[development]
+  main[main]
+  feat[feature/*]
+  hotfix[hotfix/*]
+
+  dev -->|release PR merge commit| main
+  feat -->|PR squash merge| dev
+  main -->|urgent fix| hotfix
+  hotfix -->|PR merge or squash| main
+  hotfix -->|backport merge or cherry-pick| dev
+```
 
 ### Commit Messages
 
@@ -168,6 +214,7 @@ Follow conventional commit format. PR titles must also follow this format becaus
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -177,6 +224,7 @@ Follow conventional commit format. PR titles must also follow this format becaus
 - `chore`: Maintenance tasks
 
 **Examples:**
+
 ```
 feat(hex-grid): add zoom-to-fit button
 fix(tile-inspector): prevent form reset on feature toggle
@@ -188,7 +236,7 @@ refactor(store): extract tile actions into separate file
 
 We use Husky + lint-staged locally to catch issues before commits:
 
-- **Pre-commit**: runs ESLint on staged `*.ts`/`*.tsx` files
+- **Pre-commit**: runs Prettier on staged files and ESLint on staged `*.ts`/`*.tsx`
 - **Commit-msg**: validates Conventional Commits
 
 Hooks are installed automatically after `npm install` via the `prepare` script. If hooks aren't running, execute:
@@ -205,14 +253,18 @@ HUSKY=0 git commit -m "chore: skip hooks"
 
 ## Pull Request Process
 
-1. **Create a feature branch** from `main`:
+1. **Create a feature branch** from `development`:
+
    ```bash
+   git checkout development
+   git pull origin development
    git checkout -b feature/my-feature
    ```
 
 2. **Make your changes** following the code style guidelines.
 
 3. **Run the linter** and fix any issues:
+
    ```bash
    npm run lint
    ```
@@ -221,7 +273,8 @@ HUSKY=0 git commit -m "chore: skip hooks"
 
 5. **Commit your changes** with descriptive commit messages.
 
-6. **Push your branch** and create a pull request:
+6. **Push your branch** and create a pull request targeting `development`:
+
    ```bash
    git push -u origin feature/my-feature
    ```
@@ -236,26 +289,78 @@ HUSKY=0 git commit -m "chore: skip hooks"
 
 9. **Address review feedback** by pushing additional commits.
 
-10. **Squash and merge** once approved.
+10. **Squash and merge** once approved (for feature PRs into `development`).
+
+### Merge Strategies
+
+- **Feature PRs → `development`**: Use **squash and merge**. The PR title becomes the commit message, so it must follow Conventional Commits.
+- **Release PRs (`development` → `main`)**: Use a **merge commit** (not squash) so `release-please` can see all the individual Conventional Commits and generate an accurate changelog.
+- **Hotfix PRs → `main`**: Use **squash and merge** or **merge commit** depending on the number of commits.
+
+### Hotfix Flow
+
+For urgent production fixes that cannot wait for a normal release cycle:
+
+1. **Branch from `main`**:
+
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b hotfix/critical-bug-description
+   ```
+
+2. **Make the fix** and test thoroughly.
+
+3. **Create a PR targeting `main`**. Once approved and merged, `release-please` will include it in the next release.
+
+4. **Backport to `development`** to prevent branch divergence:
+
+   ```bash
+   git checkout development
+   git pull origin development
+   git merge main
+   # Or cherry-pick specific commits if preferred
+   git push origin development
+   ```
 
 ### PR Checklist
 
 - [ ] Code follows the style guidelines
 - [ ] Self-reviewed the code
 - [ ] Added/updated JSDoc comments where appropriate
+- [ ] Formatting passes (`npm run format:check`)
 - [ ] Linter passes (`npm run lint`)
 - [ ] Typecheck passes (`npm run typecheck`)
+- [ ] Tests pass (`npm test`)
 - [ ] Tested manually in the app
 - [ ] Updated documentation if needed
 
 ### Branch Protection (Recommended)
 
-Protect `main` with required status checks:
+Protect both `main` and `development` branches in GitHub settings:
 
-- PR title lint (Conventional Commits)
-- `npm run lint`
-- `npm run typecheck`
-- `npm run package`
+**`development` branch:**
+
+- Require pull request before merging
+- Required status checks:
+  - PR title lint (Conventional Commits)
+  - `npm run format:check`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+  - `npm run package`
+
+**`main` branch:**
+
+- Require pull request before merging
+- Required status checks: same as `development`
+- Restrict who can push (only maintainers via release PRs or hotfixes)
+- Consider: require linear history
+
+**GitHub repo settings:**
+
+- Set **default branch** to `development` so PRs naturally target it
+- Policy: only merge to `main` via release PRs from `development` or hotfix PRs
 
 ## Testing
 
@@ -269,8 +374,15 @@ Currently, the project relies on manual testing. When testing your changes:
 
 ### Future Testing Plans
 
+We have basic unit tests (Vitest) for renderer utilities. Add new tests alongside the code (e.g. `src/**/**.test.ts`) and run:
+
+```bash
+npm test
+```
+
 We plan to add:
-- Unit tests for utility functions (`hexUtils.ts`, `persistence.ts`)
+
+- More unit tests for utilities and reducers
 - Component tests for React components
 - E2E tests for critical user flows
 
@@ -301,6 +413,7 @@ When requesting a feature:
 ## Questions?
 
 If you have questions about contributing, feel free to:
+
 - Open a GitHub Discussion
 - Comment on a relevant issue
 - Reach out to the maintainers

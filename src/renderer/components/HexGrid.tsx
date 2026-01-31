@@ -84,8 +84,7 @@ const AdjacencyOverlay: React.FC<AdjacencyOverlayProps> = ({
     const data: OverlayDatum[] = [];
 
     tiles.forEach((tile) => {
-      const hasDistrict =
-        tile.district !== undefined && tile.district !== "city_center";
+      const hasDistrict = tile.district !== undefined && tile.district !== "city_center";
       const isMountain = tile.modifier === "mountain";
       const isWater = tile.terrain === "coast" || tile.terrain === "ocean";
       const canPlaceOnWater = isWaterDistrict(overlayDistrict) && isWater;
@@ -207,7 +206,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
       }));
       setPanStart({ x: e.clientX, y: e.clientY });
     },
-    [isPanning, panStart, viewBox.w]
+    [isPanning, panStart, viewBox.w],
   );
 
   // Handle mouse up to stop panning
@@ -296,9 +295,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
     const isHills = tile.modifier === "hills";
 
     // Check if this tile has a city center
-    const city = cities.find(
-      (c) => c.location.q === tile.coord.q && c.location.r === tile.coord.r
-    );
+    const city = cities.find((c) => c.location.q === tile.coord.q && c.location.r === tile.coord.r);
 
     // Check for planned states
     const hasPlans = tile.plannedStates.length > 0;
@@ -325,7 +322,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
     const primaryFeature = tile.features.length > 0 ? tile.features[0] : null;
 
     const featureIcon = primaryFeature ? featureIcons[primaryFeature] : undefined;
-    
+
     // Show feature graphics only when no district/improvement to avoid overlap
     const showFeatureGraphics = primaryFeature && !hasDistrict && !hasImprovement && !isMountain;
     // Show feature emoji icon only when graphics are hidden (i.e., when district/improvement present)
@@ -371,10 +368,42 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
         {showFeatureGraphics && primaryFeature === "marsh" && (
           <g pointerEvents="none" opacity={0.7}>
             {/* Reed/grass lines for marsh */}
-            <line x1={x - 8} y1={y + 10} x2={x - 10} y2={y - 5} stroke="#365314" strokeWidth={2} strokeLinecap="round" />
-            <line x1={x - 3} y1={y + 10} x2={x - 4} y2={y - 8} stroke="#365314" strokeWidth={2} strokeLinecap="round" />
-            <line x1={x + 3} y1={y + 10} x2={x + 2} y2={y - 6} stroke="#365314" strokeWidth={2} strokeLinecap="round" />
-            <line x1={x + 8} y1={y + 10} x2={x + 10} y2={y - 4} stroke="#365314" strokeWidth={2} strokeLinecap="round" />
+            <line
+              x1={x - 8}
+              y1={y + 10}
+              x2={x - 10}
+              y2={y - 5}
+              stroke="#365314"
+              strokeWidth={2}
+              strokeLinecap="round"
+            />
+            <line
+              x1={x - 3}
+              y1={y + 10}
+              x2={x - 4}
+              y2={y - 8}
+              stroke="#365314"
+              strokeWidth={2}
+              strokeLinecap="round"
+            />
+            <line
+              x1={x + 3}
+              y1={y + 10}
+              x2={x + 2}
+              y2={y - 6}
+              stroke="#365314"
+              strokeWidth={2}
+              strokeLinecap="round"
+            />
+            <line
+              x1={x + 8}
+              y1={y + 10}
+              x2={x + 10}
+              y2={y - 4}
+              stroke="#365314"
+              strokeWidth={2}
+              strokeLinecap="round"
+            />
           </g>
         )}
 
@@ -382,7 +411,10 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
           <g pointerEvents="none">
             {/* Tree symbols for woods */}
             <polygon points={`${x - 10},${y + 8} ${x - 5},${y - 6} ${x},${y + 8}`} fill="#166534" />
-            <polygon points={`${x + 2},${y + 8} ${x + 7},${y - 8} ${x + 12},${y + 8}`} fill="#15803d" />
+            <polygon
+              points={`${x + 2},${y + 8} ${x + 7},${y - 8} ${x + 12},${y + 8}`}
+              fill="#15803d"
+            />
             <rect x={x - 6} y={y + 8} width={2} height={4} fill="#78350f" />
             <rect x={x + 6} y={y + 8} width={2} height={4} fill="#78350f" />
           </g>
@@ -392,8 +424,14 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
           <g pointerEvents="none">
             {/* Dense tree symbols for rainforest */}
             <polygon points={`${x - 12},${y + 8} ${x - 6},${y - 8} ${x},${y + 8}`} fill="#14532d" />
-            <polygon points={`${x - 4},${y + 6} ${x + 2},${y - 10} ${x + 8},${y + 6}`} fill="#166534" />
-            <polygon points={`${x + 4},${y + 8} ${x + 10},${y - 6} ${x + 16},${y + 8}`} fill="#15803d" />
+            <polygon
+              points={`${x - 4},${y + 6} ${x + 2},${y - 10} ${x + 8},${y + 6}`}
+              fill="#166534"
+            />
+            <polygon
+              points={`${x + 4},${y + 8} ${x + 10},${y - 6} ${x + 16},${y + 8}`}
+              fill="#15803d"
+            />
             {/* Palm frond accent */}
             <ellipse cx={x + 2} cy={y - 8} rx={4} ry={2} fill="#22c55e" />
           </g>
@@ -424,7 +462,10 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
           <g pointerEvents="none">
             {/* Water pool with palm */}
             <ellipse cx={x} cy={y + 4} rx={12} ry={6} fill="#0ea5e9" opacity={0.7} />
-            <polygon points={`${x + 8},${y + 6} ${x + 12},${y - 10} ${x + 16},${y + 6}`} fill="#16a34a" />
+            <polygon
+              points={`${x + 8},${y + 6} ${x + 12},${y - 10} ${x + 16},${y + 6}`}
+              fill="#16a34a"
+            />
           </g>
         )}
 
@@ -450,9 +491,18 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
         {showFeatureGraphics && primaryFeature === "cliffs" && (
           <g pointerEvents="none">
             {/* Rocky cliff face */}
-            <polygon points={`${x - 15},${y + 10} ${x - 10},${y - 8} ${x - 5},${y + 10}`} fill="#64748b" />
-            <polygon points={`${x - 8},${y + 10} ${x},${y - 10} ${x + 8},${y + 10}`} fill="#475569" />
-            <polygon points={`${x + 5},${y + 10} ${x + 12},${y - 6} ${x + 18},${y + 10}`} fill="#64748b" />
+            <polygon
+              points={`${x - 15},${y + 10} ${x - 10},${y - 8} ${x - 5},${y + 10}`}
+              fill="#64748b"
+            />
+            <polygon
+              points={`${x - 8},${y + 10} ${x},${y - 10} ${x + 8},${y + 10}`}
+              fill="#475569"
+            />
+            <polygon
+              points={`${x + 5},${y + 10} ${x + 12},${y - 6} ${x + 18},${y + 10}`}
+              fill="#64748b"
+            />
           </g>
         )}
 
@@ -474,15 +524,19 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
             />
             {/* Subtle highlight on top edge of triangles */}
             <line
-              x1={x - 12} y1={y + 8}
-              x2={x - 6} y2={y - 2}
+              x1={x - 12}
+              y1={y + 8}
+              x2={x - 6}
+              y2={y - 2}
               stroke="rgba(255,255,255,0.3)"
               strokeWidth={1}
               pointerEvents="none"
             />
             <line
-              x1={x - 2} y1={y + 8}
-              x2={x + 4} y2={y - 2}
+              x1={x - 2}
+              y1={y + 8}
+              x2={x + 4}
+              y2={y - 2}
               stroke="rgba(255,255,255,0.3)"
               strokeWidth={1}
               pointerEvents="none"
@@ -523,7 +577,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
                   strokeLinecap="round"
                   pointerEvents="none"
                 />
-              ) : null
+              ) : null,
             )}
           </g>
         )}
@@ -722,7 +776,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
             strokeDasharray="2,4"
             opacity={0.3}
             className="hex-guide"
-          />
+          />,
         );
       }
     }
@@ -742,9 +796,7 @@ const HexGrid: React.FC<HexGridProps> = ({ onTileSelect, selectedTile, overlayDi
         <g className="grid-guides">{renderGridGuide()}</g>
 
         {/* Actual tiles */}
-        <g className="tiles">
-          {Array.from(tiles.values()).map((tile) => renderHex(tile))}
-        </g>
+        <g className="tiles">{Array.from(tiles.values()).map((tile) => renderHex(tile))}</g>
 
         {/* Adjacency overlay */}
         {overlayDistrict && (

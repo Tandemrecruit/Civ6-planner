@@ -319,14 +319,9 @@ export const getCivModifiers = (civId?: string): CivAdjacencyModifiers => {
  * @param tiles - Map of all tiles
  * @returns Array of neighboring tiles (only tiles that exist in the map)
  */
-const getNeighborTiles = (
-  coord: HexCoord,
-  tiles: Map<string, Tile>
-): Tile[] => {
+const getNeighborTiles = (coord: HexCoord, tiles: Map<string, Tile>): Tile[] => {
   const neighbors = hexNeighbors(coord);
-  return neighbors
-    .map((n) => tiles.get(coordKey(n)))
-    .filter((t): t is Tile => t !== undefined);
+  return neighbors.map((n) => tiles.get(coordKey(n))).filter((t): t is Tile => t !== undefined);
 };
 
 /**
@@ -346,10 +341,7 @@ const hasRiver = (tile: Tile): boolean => {
  * @param predicate - Function to test each tile
  * @returns Count of matching tiles
  */
-const countMatching = (
-  neighbors: Tile[],
-  predicate: (tile: Tile) => boolean
-): number => {
+const countMatching = (neighbors: Tile[], predicate: (tile: Tile) => boolean): number => {
   return neighbors.filter(predicate).length;
 };
 
@@ -364,7 +356,7 @@ const countMatching = (
 const createSource = (
   source: string,
   count: number,
-  bonusPerSource: number
+  bonusPerSource: number,
 ): AdjacencySource | null => {
   if (count === 0) return null;
   return {
@@ -383,9 +375,7 @@ const createSource = (
  * Calculate Campus adjacency bonus.
  * +1 from mountains, +1 from rainforest, +1 from reef, +1 from geothermal, +0.5 from districts
  */
-const calculateCampusAdjacency = (
-  neighbors: Tile[]
-): AdjacencySource[] => {
+const calculateCampusAdjacency = (neighbors: Tile[]): AdjacencySource[] => {
   const sources: AdjacencySource[] = [];
 
   const mountains = countMatching(neighbors, (t) => t.modifier === "mountain");
@@ -410,9 +400,7 @@ const calculateCampusAdjacency = (
  * Calculate Holy Site adjacency bonus.
  * +1 from mountains, +1 from woods, +1 from natural wonders, +0.5 from districts
  */
-const calculateHolySiteAdjacency = (
-  neighbors: Tile[]
-): AdjacencySource[] => {
+const calculateHolySiteAdjacency = (neighbors: Tile[]): AdjacencySource[] => {
   const sources: AdjacencySource[] = [];
 
   const mountains = countMatching(neighbors, (t) => t.modifier === "mountain");
@@ -434,15 +422,13 @@ const calculateHolySiteAdjacency = (
  * Calculate Theater Square adjacency bonus.
  * +1 from wonders, +2 from entertainment complex/water park, +0.5 from districts
  */
-const calculateTheaterSquareAdjacency = (
-  neighbors: Tile[]
-): AdjacencySource[] => {
+const calculateTheaterSquareAdjacency = (neighbors: Tile[]): AdjacencySource[] => {
   const sources: AdjacencySource[] = [];
 
   const wonders = countMatching(neighbors, (t) => t.wonder !== undefined);
   const entertainment = countMatching(
     neighbors,
-    (t) => t.district === "entertainment_complex" || t.district === "water_park"
+    (t) => t.district === "entertainment_complex" || t.district === "water_park",
   );
 
   const wonderSource = createSource("Wonder", wonders, 1);
@@ -460,7 +446,7 @@ const calculateTheaterSquareAdjacency = (
  */
 const calculateCommercialHubAdjacency = (
   neighbors: Tile[],
-  centerTile: Tile | undefined
+  centerTile: Tile | undefined,
 ): AdjacencySource[] => {
   const sources: AdjacencySource[] = [];
 
@@ -481,9 +467,7 @@ const calculateCommercialHubAdjacency = (
  * Calculate Industrial Zone adjacency bonus.
  * +1 from mines, +1 from quarries, +2 from strategic resources with improvement, +0.5 from districts
  */
-const calculateIndustrialZoneAdjacency = (
-  neighbors: Tile[]
-): AdjacencySource[] => {
+const calculateIndustrialZoneAdjacency = (neighbors: Tile[]): AdjacencySource[] => {
   const sources: AdjacencySource[] = [];
 
   const mines = countMatching(neighbors, (t) => t.improvement === "mine");
@@ -491,14 +475,16 @@ const calculateIndustrialZoneAdjacency = (
   // Strategic resources with improvements (mine on iron, oil well on oil, etc.)
   const strategicWithImprovement = countMatching(
     neighbors,
-    (t) =>
-      t.resource?.type === "strategic" &&
-      t.improvement !== undefined
+    (t) => t.resource?.type === "strategic" && t.improvement !== undefined,
   );
 
   const mineSource = createSource("Mine", mines, 1);
   const quarrySource = createSource("Quarry", quarries, 1);
-  const strategicSource = createSource("Strategic Resource (improved)", strategicWithImprovement, 2);
+  const strategicSource = createSource(
+    "Strategic Resource (improved)",
+    strategicWithImprovement,
+    2,
+  );
 
   if (mineSource) sources.push(mineSource);
   if (quarrySource) sources.push(quarrySource);
@@ -511,9 +497,7 @@ const calculateIndustrialZoneAdjacency = (
  * Calculate Harbor adjacency bonus.
  * +2 from city center, +1 from other districts
  */
-const calculateHarborAdjacency = (
-  neighbors: Tile[]
-): AdjacencySource[] => {
+const calculateHarborAdjacency = (neighbors: Tile[]): AdjacencySource[] => {
   const sources: AdjacencySource[] = [];
 
   const cityCenters = countMatching(neighbors, (t) => t.district === "city_center");
@@ -522,7 +506,7 @@ const calculateHarborAdjacency = (
     (t) =>
       t.district !== undefined &&
       t.district !== "city_center" &&
-      ADJACENCY_PROVIDING_DISTRICTS.includes(t.district)
+      ADJACENCY_PROVIDING_DISTRICTS.includes(t.district),
   );
 
   const cityCenterSource = createSource("City Center", cityCenters, 2);
@@ -548,9 +532,7 @@ const calculateEncampmentAdjacency = (): AdjacencySource[] => {
  * +1 per adjacent unimproved charming+ tile (based on appeal)
  * For simplicity, we'll count unimproved tiles with woods or next to mountains
  */
-const calculatePreserveAdjacency = (
-  neighbors: Tile[]
-): AdjacencySource[] => {
+const calculatePreserveAdjacency = (neighbors: Tile[]): AdjacencySource[] => {
   const sources: AdjacencySource[] = [];
 
   // Charming tiles: woods, next to coast/mountains, no improvements
@@ -562,7 +544,7 @@ const calculatePreserveAdjacency = (
       (t.features.includes("woods") ||
         t.modifier === "mountain" ||
         t.terrain === "coast" ||
-        t.features.includes("oasis"))
+        t.features.includes("oasis")),
   );
 
   const charmingSource = createSource("Unimproved Charming Tile", charmingTiles, 1);
@@ -585,13 +567,11 @@ const calculatePreserveAdjacency = (
  */
 const calculateDistrictBonus = (
   neighbors: Tile[],
-  districtBonusMultiplier: number = 0.5
+  districtBonusMultiplier: number = 0.5,
 ): AdjacencySource | null => {
   const adjacentDistricts = countMatching(
     neighbors,
-    (t) =>
-      t.district !== undefined &&
-      ADJACENCY_PROVIDING_DISTRICTS.includes(t.district)
+    (t) => t.district !== undefined && ADJACENCY_PROVIDING_DISTRICTS.includes(t.district),
   );
 
   return createSource("District", adjacentDistricts, districtBonusMultiplier);
@@ -605,9 +585,7 @@ const calculateDistrictBonus = (
  * @param neighbors - Neighboring tiles
  * @returns Government Plaza adjacency source, or null if none adjacent
  */
-const calculateGovernmentPlazaBonus = (
-  neighbors: Tile[]
-): AdjacencySource | null => {
+const calculateGovernmentPlazaBonus = (neighbors: Tile[]): AdjacencySource | null => {
   const govPlazas = countMatching(neighbors, (t) => t.district === "government_plaza");
   return createSource("Government Plaza", govPlazas, 1);
 };
@@ -634,7 +612,7 @@ export const calculateAdjacency = (
   coord: HexCoord,
   district: DistrictType,
   tiles: Map<string, Tile>,
-  playerCiv?: string
+  playerCiv?: string,
 ): AdjacencyResult => {
   const neighbors = getNeighborTiles(coord, tiles);
   const centerTile = tiles.get(coordKey(coord));
@@ -665,7 +643,7 @@ export const calculateAdjacency = (
         const brazilRainforest = createSource(
           "Rainforest (Brazil)",
           rainforest,
-          civModifiers.featureBonuses.rainforest_holy_site
+          civModifiers.featureBonuses.rainforest_holy_site,
         );
         if (brazilRainforest) sources.push(brazilRainforest);
       }
@@ -678,7 +656,7 @@ export const calculateAdjacency = (
         const brazilRainforest = createSource(
           "Rainforest (Brazil)",
           rainforest,
-          civModifiers.featureBonuses.rainforest_theater_square
+          civModifiers.featureBonuses.rainforest_theater_square,
         );
         if (brazilRainforest) sources.push(brazilRainforest);
       }
@@ -691,7 +669,7 @@ export const calculateAdjacency = (
         const brazilRainforest = createSource(
           "Rainforest (Brazil)",
           rainforest,
-          civModifiers.featureBonuses.rainforest_commercial_hub
+          civModifiers.featureBonuses.rainforest_commercial_hub,
         );
         if (brazilRainforest) sources.push(brazilRainforest);
       }
@@ -707,16 +685,15 @@ export const calculateAdjacency = (
         }
       }
       break;
-    case "harbor":
+    case "harbor": {
       // Harbor has special adjacency rules - calculated separately
-      {
-        const harborSources = calculateHarborAdjacency(neighbors);
-        return {
-          district,
-          bonus: Math.floor(harborSources.reduce((sum, s) => sum + s.totalBonus, 0)),
-          breakdown: harborSources,
-        };
-      }
+      const harborSources = calculateHarborAdjacency(neighbors);
+      return {
+        district,
+        bonus: Math.floor(harborSources.reduce((sum, s) => sum + s.totalBonus, 0)),
+        breakdown: harborSources,
+      };
+    }
     case "encampment":
       sources.push(...calculateEncampmentAdjacency());
       break;
@@ -731,8 +708,9 @@ export const calculateAdjacency = (
       break;
   }
 
-  // Add standard district adjacency bonus (except for harbor which has special rules)
-  if (district !== "harbor" && STANDARD_DISTRICTS.includes(district)) {
+  // Add standard district adjacency bonus.
+  // Note: Harbor returns early above with special rules, so no extra check is needed here.
+  if (STANDARD_DISTRICTS.includes(district)) {
     const districtSource = calculateDistrictBonus(neighbors, districtBonusMultiplier);
     if (districtSource) sources.push(districtSource);
   }
@@ -767,7 +745,7 @@ export const calculateAdjacency = (
 export const calculateAllAdjacencies = (
   coord: HexCoord,
   tiles: Map<string, Tile>,
-  playerCiv?: string
+  playerCiv?: string,
 ): AdjacencyResult[] => {
   // Districts to calculate adjacency for
   const districtsToCalculate: DistrictType[] = [
@@ -783,7 +761,7 @@ export const calculateAllAdjacencies = (
   ];
 
   const results = districtsToCalculate.map((district) =>
-    calculateAdjacency(coord, district, tiles, playerCiv)
+    calculateAdjacency(coord, district, tiles, playerCiv),
   );
 
   // Sort by bonus descending

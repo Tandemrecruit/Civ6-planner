@@ -54,12 +54,7 @@ interface AdjacencyPanelProps {
  *   playerCiv="korea"
  * />
  */
-const AdjacencyPanel: React.FC<AdjacencyPanelProps> = ({
-  coord,
-  tiles,
-  tile,
-  playerCiv,
-}) => {
+const AdjacencyPanel: React.FC<AdjacencyPanelProps> = ({ coord, tiles, tile, playerCiv }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [expandedDistrict, setExpandedDistrict] = useState<string | null>(null);
 
@@ -96,17 +91,12 @@ const AdjacencyPanel: React.FC<AdjacencyPanelProps> = ({
 
   return (
     <div className="adjacency-panel">
-      <button
-        className="adjacency-header"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
+      <button className="adjacency-header" onClick={() => setIsExpanded(!isExpanded)}>
         <span className="adjacency-title">
           <span className="adjacency-icon">📐</span>
           District Adjacency
         </span>
-        <span className={`expand-arrow ${isExpanded ? "expanded" : ""}`}>
-          ▼
-        </span>
+        <span className={`expand-arrow ${isExpanded ? "expanded" : ""}`}>▼</span>
       </button>
 
       {isExpanded && (
@@ -154,12 +144,7 @@ interface AdjacencyItemProps {
   isWater: boolean;
 }
 
-const AdjacencyItem: React.FC<AdjacencyItemProps> = ({
-  result,
-  isExpanded,
-  onToggle,
-  isWater,
-}) => {
+const AdjacencyItem: React.FC<AdjacencyItemProps> = ({ result, isExpanded, onToggle, isWater }) => {
   const { district, bonus, breakdown } = result;
   const color = getAdjacencyColor(bonus);
   const rating = getAdjacencyRating(bonus);
@@ -181,9 +166,7 @@ const AdjacencyItem: React.FC<AdjacencyItemProps> = ({
           {rating}
         </span>
         {breakdown.length > 0 && (
-          <span className={`breakdown-arrow ${isExpanded ? "expanded" : ""}`}>
-            ▸
-          </span>
+          <span className={`breakdown-arrow ${isExpanded ? "expanded" : ""}`}>▸</span>
         )}
       </button>
 
@@ -200,9 +183,7 @@ const AdjacencyItem: React.FC<AdjacencyItemProps> = ({
         </ul>
       )}
 
-      {!isValidForTerrain && (
-        <span className="terrain-warning">Cannot place on water</span>
-      )}
+      {!isValidForTerrain && <span className="terrain-warning">Cannot place on water</span>}
     </li>
   );
 };
