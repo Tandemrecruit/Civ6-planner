@@ -7,7 +7,7 @@
  * @module renderer/components/GameView
  */
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useGameStore } from "../store";
 import { HexCoord, DistrictType, coordKey, GameSetup } from "../../types/model";
 import HexGrid from "./HexGrid";
@@ -112,13 +112,13 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
     return JSON.stringify(serialized, null, 2);
   };
 
-  const handleTileSelect = (coord: HexCoord) => {
+  const handleTileSelect = useCallback((coord: HexCoord) => {
     setSelectedCoord(coord);
-  };
+  }, []);
 
-  const handleCloseInspector = () => {
+  const handleCloseInspector = useCallback(() => {
     setSelectedCoord(null);
-  };
+  }, []);
 
   const handleAdvanceTurn = () => {
     const newTurn = parseInt(newTurnInput, 10);
@@ -166,16 +166,19 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
     }
   };
 
-  const handleBackup = async () => {
+  const handleBackup = async (): Promise<boolean> => {
     try {
       const result = await window.electronAPI.backupSave();
       if (result.success) {
         showStatus(result.path ? `Backup created: ${result.path}` : "Backup created", "success");
+        return true;
       } else {
         showStatus(result.error || "Backup failed", "error");
+        return false;
       }
     } catch (error) {
       showStatus(`Backup failed: ${String(error)}`, "error");
+      return false;
     }
   };
 
@@ -192,10 +195,8 @@ const GameView: React.FC<GameViewProps> = ({ onNewGame }) => {
 
   const handleNewGameClick = async () => {
     if (window.confirm("Start a new game? Current progress will be saved as a backup.")) {
-      try {
-        await handleBackup();
-      } catch (error) {
-        showStatus(`Backup failed: ${String(error)}`, "error");
+      const backupOk = await handleBackup();
+      if (!backupOk) {
         return;
       }
       const emptySetup: GameSetup = {

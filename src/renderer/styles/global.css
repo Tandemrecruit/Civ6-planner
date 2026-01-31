@@ -30,6 +30,19 @@
   --warning: #f59e0b;
   --danger: #ef4444;
 
+  /* Theme tokens - buttons */
+  --btn-bg: rgba(255, 255, 255, 0.03);
+  --btn-bg-hover: rgba(198, 166, 100, 0.08);
+  --btn-border: rgba(198, 166, 100, 0.25);
+  --btn-border-hover: var(--gold-accent);
+
+  /* Theme tokens - status banner */
+  --status-banner-bg: rgba(17, 24, 39, 0.92);
+  --status-banner-border: rgba(255, 255, 255, 0.15);
+  --status-banner-border-success: rgba(34, 197, 94, 0.45);
+  --status-banner-border-error: rgba(239, 68, 68, 0.45);
+  --status-banner-border-info: rgba(59, 130, 246, 0.45);
+
   /* Layout */
   --header-height: 72px;
 

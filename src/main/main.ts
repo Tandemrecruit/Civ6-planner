@@ -50,13 +50,54 @@ const writeJsonAtomically = (filePath: string, data: string) => {
   }
 
   const tempPath = filePath + ".tmp";
+  const bakPath = filePath + ".bak";
+
   fs.writeFileSync(tempPath, data, "utf-8");
 
-  // On Windows, rename fails if destination exists - remove it first
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
+  const targetExists = fs.existsSync(filePath);
+
+  // Ensure we don't have a stale backup file that would block renames on Windows
+  if (fs.existsSync(bakPath)) {
+    try {
+      fs.unlinkSync(bakPath);
+    } catch {
+      // If we can't remove a stale backup, proceed and let rename throw with context
+    }
   }
-  fs.renameSync(tempPath, filePath);
+
+  try {
+    if (targetExists) {
+      fs.renameSync(filePath, bakPath);
+    }
+
+    try {
+      fs.renameSync(tempPath, filePath);
+    } catch (error) {
+      // If the swap failed, attempt to restore original from backup
+      if (targetExists && fs.existsSync(bakPath) && !fs.existsSync(filePath)) {
+        try {
+          fs.renameSync(bakPath, filePath);
+        } catch {
+          // Swallow restore errors; we'll rethrow the original error below
+        }
+      }
+      throw error;
+    }
+
+    // Only remove the backup once the new file is in place
+    if (targetExists && fs.existsSync(bakPath)) {
+      fs.unlinkSync(bakPath);
+    }
+  } finally {
+    // Best-effort cleanup if something failed before the temp file was moved
+    if (fs.existsSync(tempPath)) {
+      try {
+        fs.unlinkSync(tempPath);
+      } catch {
+        // ignore
+      }
+    }
+  }
 };
 
 // IPC handlers for save/load
