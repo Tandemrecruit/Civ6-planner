@@ -34,6 +34,8 @@ release/
 .env.development.local
 .env.test.local
 .env.production.local
+.npmrc
+!.npmrc.example
 
 # Logs
 logs/
@@ -46,6 +48,7 @@ pnpm-debug.log*
 # Editor and IDE
 .idea/
 .vscode/
+.vs/
 *.swp
 *.swo
 *~
@@ -61,6 +64,7 @@ pnpm-debug.log*
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+*.lnk
 
 # Testing
 coverage/
@@ -69,6 +73,8 @@ coverage/
 # Cache
 .cache/
 .parcel-cache/
+.yarn/
+.pnpm-store/
 .eslintcache
 .stylelintcache
 *.tscache
