@@ -37,11 +37,16 @@ Exposed API:
 
 ```typescript
 window.electronAPI = {
-  saveGame: (data: SerializedGameState) => Promise<void>
-  loadGame: () => Promise<SerializedGameState | null>
-  backupSave: () => Promise<void>
+  saveGame: (data: string) => Promise<{ success: boolean; path?: string; error?: string }>
+  loadGame: () => Promise<{ success: boolean; data?: string | null; error?: string }>
+  backupSave: () => Promise<{ success: boolean; path?: string; error?: string }>
+  exportGame: (data: string) => Promise<{ success: boolean; canceled?: boolean; path?: string; error?: string }>
+  importGame: () => Promise<{ success: boolean; canceled?: boolean; path?: string; data?: string; error?: string }>
+  openSaveLocation: () => Promise<{ success: boolean; path?: string; error?: string }>
 }
 ```
+
+All IPC methods return structured envelopes with `success` boolean and optional `error` string for consistent error handling. The `data` parameter is a serialized JSON string (serialization happens in the renderer before IPC).
 
 ### Renderer Process
 

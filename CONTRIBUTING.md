@@ -232,11 +232,12 @@ docs(readme): update installation instructions
 refactor(store): extract tile actions into separate file
 ```
 
-### Git Hooks (Pre-commit)
+### Git Hooks
 
-We use Husky + lint-staged locally to catch issues before commits:
+We use Husky + lint-staged locally to catch issues early:
 
-- **Pre-commit**: runs Prettier on staged files and ESLint on staged `*.ts`/`*.tsx`
+- **Pre-commit**: runs Prettier on staged files and ESLint on staged `*.ts`/`*.tsx` (fast; does **not** run `typecheck`)
+- **Pre-push**: runs `npm run typecheck` and `npm test` to catch CI failures before you push
 - **Commit-msg**: validates Conventional Commits
 
 Hooks are installed automatically after `npm install` via the `prepare` script. If hooks aren't running, execute:
