@@ -45,6 +45,11 @@ Thank you for your interest in contributing to the Civ 6 Strategic Planner! This
    npm run lint
    ```
 
+5. **Run the typecheck**
+   ```bash
+   npm run typecheck
+   ```
+
 ### Building for Production
 
 ```bash
@@ -154,7 +159,7 @@ src/
 
 ### Commit Messages
 
-Follow conventional commit format:
+Follow conventional commit format. PR titles must also follow this format because we squash-merge.
 
 ```
 <type>(<scope>): <description>
@@ -177,6 +182,25 @@ feat(hex-grid): add zoom-to-fit button
 fix(tile-inspector): prevent form reset on feature toggle
 docs(readme): update installation instructions
 refactor(store): extract tile actions into separate file
+```
+
+### Git Hooks (Pre-commit)
+
+We use Husky + lint-staged locally to catch issues before commits:
+
+- **Pre-commit**: runs ESLint on staged `*.ts`/`*.tsx` files
+- **Commit-msg**: validates Conventional Commits
+
+Hooks are installed automatically after `npm install` via the `prepare` script. If hooks aren't running, execute:
+
+```bash
+npm run prepare
+```
+
+To temporarily skip hooks for a single command:
+
+```bash
+HUSKY=0 git commit -m "chore: skip hooks"
 ```
 
 ## Pull Request Process
@@ -202,15 +226,17 @@ refactor(store): extract tile actions into separate file
    git push -u origin feature/my-feature
    ```
 
-7. **Fill out the PR template** with:
+7. **Ensure the PR title follows Conventional Commits** (used for the squash-merge commit).
+
+8. **Fill out the PR template** with:
    - Summary of changes
    - Related issues (if any)
    - Testing steps
    - Screenshots (for UI changes)
 
-8. **Address review feedback** by pushing additional commits.
+9. **Address review feedback** by pushing additional commits.
 
-9. **Squash and merge** once approved.
+10. **Squash and merge** once approved.
 
 ### PR Checklist
 
@@ -218,8 +244,18 @@ refactor(store): extract tile actions into separate file
 - [ ] Self-reviewed the code
 - [ ] Added/updated JSDoc comments where appropriate
 - [ ] Linter passes (`npm run lint`)
+- [ ] Typecheck passes (`npm run typecheck`)
 - [ ] Tested manually in the app
 - [ ] Updated documentation if needed
+
+### Branch Protection (Recommended)
+
+Protect `main` with required status checks:
+
+- PR title lint (Conventional Commits)
+- `npm run lint`
+- `npm run typecheck`
+- `npm run package`
 
 ## Testing
 
